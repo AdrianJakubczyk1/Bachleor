@@ -1,0 +1,44 @@
+\chapter{Testowanie}
+
+Rozdział ten opisuje proces weryfikacji jakości stworzonej aplikacji, obejmujący testy jednostkowe, integracyjne oraz testy manualne.
+
+\section{Testy jednostkowe}
+
+W testach jednostkowych wykorzystano:
+
+\begin{itemize}
+    \item \textbf{JUnit 5} – podstawowy framework testowy.
+    \item \textbf{Mockito} – narzędzie do izolowania zależności między komponentami.
+\end{itemize}
+
+Przykładowy test jednostkowy przedstawia sprawdzanie poprawności aktualizacji statystyk:
+
+\begin{lstlisting}[language=Java]
+@Test
+void shouldUpdateStatisticsCorrectly() {
+    when(postRepository.count()).thenReturn(10L);
+    statsService.updateStatistics();
+    verify(statsDao, times(1)).saveStat(any(AppStatistic.class));
+}
+\end{lstlisting}
+
+\section{Testy integracyjne}
+
+Testy integracyjne realizowano z wykorzystaniem bazy danych H2, co zapewniło izolowane i szybkie środowisko testowe. Wykorzystano narzędzia:
+
+\begin{itemize}
+    \item \textbf{Spring Boot Test}
+    \item \textbf{TestRestTemplate}
+\end{itemize}
+
+Przykład testu integracyjnego:
+
+\begin{lstlisting}[language=Java]
+@Test
+void homePageLoadsCorrectly() {
+    ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+}
+\end{lstlisting}
+
+\section{Testowanie manualne}

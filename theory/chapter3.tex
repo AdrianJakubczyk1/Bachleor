@@ -1,0 +1,61 @@
+\chapter{Prezentacja działania aplikacji}
+
+W tym rozdziale zostaną przedstawione praktyczne przykłady działania aplikacji stworzonej do udostępniania materiałów edukacyjnych. Przedstawiono tutaj interfejs użytkownika oraz omówiono realizację kluczowych scenariuszy, takich jak rejestracja, logowanie, zarządzanie materiałami, przeglądanie statystyk, a także administracja aplikacją.
+
+\section{Interfejs użytkownika}
+
+Interfejs użytkownika aplikacji został zaprojektowany z wykorzystaniem biblioteki Bootstrap, która zapewnia responsywność oraz estetyczny wygląd stron. Dynamiczne treści są generowane przez silnik szablonów Thymeleaf, co umożliwia łatwą i szybką integrację warstwy widoku z logiką aplikacji. Przykładowe widoki aplikacji to:
+
+\begin{itemize}
+    \item \textbf{Strona główna} – zawiera listę dostępnych materiałów edukacyjnych, wyszukiwarkę oraz przyciski nawigacyjne do logowania i rejestracji.
+    \item \textbf{Widok materiału} – prezentuje pełną treść materiału, komentarze użytkowników oraz oceny wystawione przez nauczycieli i studentów.
+    \item \textbf{Panel administracyjny} – umożliwia zarządzanie użytkownikami, publikowanymi treściami oraz wyświetlanie szczegółowych statystyk działania aplikacji.
+\end{itemize}
+
+\section{Rejestracja i logowanie użytkowników}
+
+Proces rejestracji nowego użytkownika jest intuicyjny oraz wymaga podania podstawowych informacji, takich jak nazwa użytkownika, adres email oraz hasło. Po rejestracji użytkownik może zalogować się do systemu, gdzie uzyskuje dostęp do dodatkowych funkcji, zależnych od jego roli (nauczyciel, uczeń lub administrator). System uwierzytelniania został zaimplementowany z użyciem biblioteki Spring Security, zapewniając wysoki poziom bezpieczeństwa i ochrony danych.
+
+\section{Publikacja oraz zarządzanie materiałami edukacyjnymi}
+
+Po zalogowaniu użytkownik (np. nauczyciel) może publikować materiały edukacyjne, które następnie są dostępne dla innych użytkowników platformy. Proces ten obejmuje:
+
+\begin{itemize}
+    \item Tworzenie nowych postów z możliwością dołączania plików.
+    \item Edycję istniejących treści oraz zarządzanie ich dostępnością.
+    \item Usuwanie materiałów, które nie są już potrzebne.
+\end{itemize}
+
+Użytkownicy mogą również komentować materiały oraz oceniać je, co zwiększa interaktywność platformy.
+
+\section{Przeglądanie statystyk}
+
+Aplikacja udostępnia panel statystyk, dostępny dla administratorów, który regularnie aktualizuje dane dotyczące użytkowników i materiałów. Wśród prezentowanych informacji znajdują się m.in.:
+
+\begin{itemize}
+    \item Liczba użytkowników i nauczycieli korzystających z aplikacji.
+    \item Najczęściej wyświetlane oraz komentowane materiały edukacyjne.
+    \item Ranking użytkowników z najwyższymi ocenami materiałów.
+\end{itemize}
+
+Statystyki są przedstawione w przejrzysty sposób, z wykorzystaniem wykresów generowanych za pomocą biblioteki Chart.js.
+
+\section{Scenariusze użytkowania aplikacji}
+
+Poniżej zaprezentowano kilka przykładowych scenariuszy użycia aplikacji, wraz z krótkim opisem ich realizacji w praktyce.
+
+\subsection{Scenariusz 1: Dodanie nowego materiału}
+
+Nauczyciel po zalogowaniu się do systemu przechodzi do widoku „Dodaj materiał”, wypełnia formularz oraz opcjonalnie załącza dodatkowy plik. Po wysłaniu formularza materiał jest widoczny na liście wszystkich materiałów.
+
+\subsection{Scenariusz 2: Ocena materiału}
+
+Uczeń przeglądając materiał edukacyjny może wystawić ocenę oraz zostawić komentarz. Informacje te są widoczne dla innych użytkowników, co ułatwia ocenę jakości i przydatności materiału.
+
+\subsection{Scenariusz 3: Analiza popularności materiałów}
+
+Administrator w panelu administracyjnym może szybko sprawdzić, które materiały cieszą się największą popularnością, co pozwala lepiej dostosować publikowane treści do potrzeb użytkowników.
+
+\section{Podsumowanie działania aplikacji}
+
+Zaprezentowane scenariusze działania aplikacji pokazują jej funkcjonalność i użyteczność w praktyce. Platforma jest intuicyjna w obsłudze, zapewnia efektywną wymianę materiałów edukacyjnych oraz umożliwia szybką interakcję między użytkownikami. Dodatkowo funkcje administracyjne pozwalają na stałe monitorowanie aktywności użytkowników oraz dostosowanie treści edukacyjnych do ich potrzeb.

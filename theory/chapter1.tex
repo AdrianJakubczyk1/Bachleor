@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Szablon pracy dyplomowej
+% Wydział Informatyki 
+% Zachodniopomorski Uniwersytet Technologiczny w Szczecinie
+% autor Joanna Kołodziejczyk (jkolodziejczyk@zut.edu.pl)
+% Bardzo wczesnym pierwowzorem szablonu był
+% The Legrand Orange Book
+% Version 5.0 (29/05/2025)
+%
+% Modifications to LOB assigned by %JK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	CHAPTER 1
+% 	author: Joanna Kolodziejczyk (jkolodziejczyk@zut.edu.pl)
+%----------------------------------------------------------------------------------------
+
+\chapter{Technologie zastosowane w projekcie}
+\label{rozdzial1}
+
+Celem niniejszego rozdziału jest przedstawienie technologii oraz narzędzi wykorzystanych w procesie implementacji aplikacji do udostępniania materiałów edukacyjnych. W rozdziale opisano przede wszystkim technologię Spring Framework oraz użyte systemy baz danych: PostgreSQL jako bazę danych produkcyjną oraz H2, która pełni rolę pomocniczą, przechowującą dane statystyczne, testowe oraz sesyjne.
+
+\section{Spring Framework}
+
+Spring Framework jest obecnie jednym z najpopularniejszych narzędzi do tworzenia aplikacji Java klasy enterprise. Charakteryzuje się modularnością, łatwą integracją z innymi technologiami oraz obsługą odwrócenia kontroli (ang. \textit{Inversion of Control - IoC}) oraz wstrzykiwania zależności (ang. \textit{Dependency Injection - DI}). Szczególną uwagę zwraca Spring Boot, będący rozszerzeniem podstawowego frameworka, który umożliwia szybką konfigurację oraz uruchomienie aplikacji, dostarczając gotowe rozwiązania wielu typowych problemów programistycznych.
+
+W projekcie wykorzystano między innymi:
+\begin{itemize}
+    \item \textbf{Spring MVC} - do implementacji warstwy widoku i obsługi żądań HTTP.
+    \item \textbf{Spring Security} - do zarządzania uwierzytelnianiem użytkowników oraz autoryzacją dostępu do zasobów aplikacji.
+    \item \textbf{Spring Data JDBC} - do zarządzania dostępem do baz danych za pomocą wygodnych repozytoriów oraz operacji CRUD.
+\end{itemize}
+
+\section{Baza danych PostgreSQL}
+
+Do trwałego przechowywania danych produkcyjnych aplikacji użyta została baza danych PostgreSQL, która charakteryzuje się wysoką wydajnością, zgodnością ze standardami SQL oraz wsparciem dla zaawansowanych operacji i funkcjonalności. W ramach aplikacji PostgreSQL przechowuje takie informacje, jak dane użytkowników, publikowane materiały, komentarze, oceny i inne dane związane z funkcjonalnościami aplikacji.
+
+\section{Baza danych H2}
+
+W projekcie wykorzystano również wbudowaną bazę danych H2, działającą w pamięci operacyjnej. Jej zastosowanie obejmuje:
+\begin{itemize}
+    \item \textbf{Testowanie aplikacji} - baza danych H2 pozwala na szybkie i efektywne przeprowadzanie testów integracyjnych oraz jednostkowych.
+    \item \textbf{Przechowywanie danych sesyjnych} - H2 umożliwia szybkie zarządzanie danymi sesyjnymi aplikacji, dzięki czemu aplikacja może działać szybciej i sprawniej obsługiwać wiele jednoczesnych sesji.
+    \item \textbf{Statystyki aplikacji} - baza danych H2 przechowuje także dane dotyczące statystyk aplikacji, które są wykorzystywane do analizowania aktywności użytkowników i działania systemu.
+\end{itemize}
+
+Zastosowanie dwóch rodzajów baz danych (PostgreSQL i H2) pozwala na optymalne wykorzystanie ich cech, zwiększenie wydajności aplikacji oraz uproszczenie procesu rozwoju, testowania i wdrażania.
+
+\section{Inne technologie}
+
+Oprócz wymienionych wyżej technologii w projekcie zastosowano dodatkowo:
+\begin{itemize}
+    \item \textbf{Thymeleaf} - do renderowanie stron HTML w aplikacji webowej.
+    \item \textbf{Bootstrap 5} - do stylizacji interfejsu użytkownika oraz zapewnienia responsywności aplikacji.
+    \item \textbf{JUnit} - do pisania testów jednostkowych oraz integracyjnych.
+    \item \textbf{Maven} - do zarządzania zależnościami oraz budowania aplikacji.
+    \item \textbf{Javscript} - do zarządzania wyglądem strony oraz do technologii AJAX
+    \item \textbf{CSS} - do zarządzania wyglądem strony
+\end{itemize}
+
+W kolejnych rozdziałach przedstawione zostaną szczegóły implementacyjne dotyczące wyżej wymienionych technologii oraz sposób ich wykorzystania w praktyce.
+
+
+
+
+

@@ -1,0 +1,97 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Szablon pracy dyplomowej
+% Wydział Informatyki 
+% Zachodniopomorski Uniwersytet Technologiczny w Szczecinie
+% autor Joanna Kołodziejczyk (jkolodziejczyk@zut.edu.pl)
+% Bardzo wczesnym pierwowzorem szablonu był
+% The Legrand Orange Book
+% Version 5.0 (29/05/2025)
+%
+% Modifications to LOB assigned by %JK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%----------------------------------------------------------------------------------------
+%	CHAPTER 2
+%----------------------------------------------------------------------------------------
+\sloppy
+
+\chapter{Opis implementacji systemu}
+
+W tym rozdziale zostaną szczegółowo przedstawione kwestie związane z implementacją aplikacji do udostępniania materiałów edukacyjnych. Omówiona zostanie architektura aplikacji, struktura baz danych, podział aplikacji na moduły oraz najważniejsze aspekty związane z realizacją konkretnych funkcjonalności.
+
+\section{Architektura aplikacji}
+
+Aplikacja została oparta o wzorzec architektoniczny MVC (\textit{Model-View-Controller}), który zapewnia czytelny podział aplikacji na warstwy:
+
+\begin{itemize}
+    \item \textbf{Model} – reprezentujący logikę biznesową oraz struktury danych. Realizowany jest za pomocą klas encji oraz repozytoriów Spring Data JDBC.
+    \item \textbf{View} – odpowiedzialny za prezentację danych użytkownikom końcowym. Do jego realizacji wykorzystano szablony Thymeleaf oraz biblioteki Bootstrap.
+    \item \textbf{Controller} – obsługujący żądania użytkowników oraz zapewniający komunikację pomiędzy widokiem a modelem aplikacji.
+\end{itemize}
+
+Takie podejście zapewnia przejrzystą strukturę projektu, ułatwiając jego dalszą rozbudowę oraz utrzymanie.
+
+\section{Struktura baz danych}
+
+W projekcie zastosowano dwa różne systemy bazodanowe:
+
+\subsection{PostgreSQL}
+
+PostgreSQL jest główną bazą danych aplikacji, odpowiedzialną za trwałe przechowywanie danych produkcyjnych. Główne tabele obejmują:
+
+\begin{itemize}
+    \item \texttt{users} – przechowuje dane użytkowników aplikacji, takie jak nazwa użytkownika, hasło, email, rola.
+    \item \texttt{posts} – zawiera publikowane materiały edukacyjne wraz z ich szczegółami jak tytuł, treść, autor oraz metadane (liczba wyświetleń, liczba komentarzy, liczba polubień).
+    \item \texttt{comments} – przechowuje komentarze użytkowników dotyczące materiałów.
+    \item \texttt{grades} – przechowuje oceny materiałów przyznawane przez nauczycieli oraz studentów.
+\end{itemize}
+
+\subsection{H2 (in-memory)}
+
+Baza danych H2 wykorzystywana jest do celów testowych, przechowywania sesji użytkowników oraz zbierania danych statystycznych dotyczących aplikacji. Główną tabelą wykorzystywaną przez tę bazę jest tabela \texttt{app\_statistics}, zawierająca takie pola jak:
+
+\begin{itemize}
+    \item \texttt{id} – unikalny identyfikator rekordu statystyki.
+    \item \texttt{stat\_name} – nazwa mierzonego wskaźnika.
+    \item \texttt{stat\_value} – wartość statystyki.
+    \item \texttt{timestamp} – znacznik czasu utworzenia rekordu.
+\end{itemize}
+
+Użycie osobnych baz danych pozwala na klarowny podział odpowiedzialności oraz łatwiejsze zarządzanie danymi w zależności od ich przeznaczenia.
+
+\section{Organizacja kodu źródłowego}
+
+Kod źródłowy aplikacji został zorganizowany zgodnie z zasadami modularności oraz dobrymi praktykami programistycznymi. Struktura projektu dzieli się na moduły:
+
+\begin{itemize}
+    \item \textbf{Moduł \texttt{persistent}} – odpowiedzialny za trwałe dane aplikacji (PostgreSQL).
+    \item \textbf{Moduł \texttt{temp}} – zawierający klasy odpowiedzialne za zarządzanie danymi tymczasowymi, sesjami i danymi statystycznymi (H2).
+    \item \textbf{Warstwa usług (\textit{Services})} – udostępniająca logikę biznesową oraz operacje na danych.
+    \item \textbf{Warstwa kontrolerów} – odpowiada za obsługę żądań HTTP oraz zarządzanie widokami.
+    \item \textbf{Warstwa widoków (Thymeleaf)} – odpowiedzialna za generowanie dynamicznych stron HTML.
+\end{itemize}
+
+\section{Implementacja najważniejszych funkcjonalności}
+
+Do kluczowych funkcjonalności systemu, których implementacja została omówiona w tej pracy należą:
+
+\begin{itemize}
+    \item \textbf{System uwierzytelniania i autoryzacji} – oparty o Spring Security, umożliwiający zarządzanie dostępem do zasobów aplikacji zgodnie z rolą użytkowników.
+    \item \textbf{Publikacja i zarządzanie materiałami edukacyjnymi} – umożliwia użytkownikom tworzenie, edytowanie i usuwanie materiałów.
+    \item \textbf{Komentowanie i ocenianie materiałów} – pozwala na interakcję użytkowników oraz ocenianie publikowanych materiałów edukacyjnych.
+    \item \textbf{System statystyk i analiz} – regularnie aktualizowany przez zaplanowane zadania (\textit{Scheduler}), umożliwiający wizualizację danych takich jak najczęściej przeglądane lub komentowane materiały oraz najlepiej oceniani użytkownicy.
+\end{itemize}
+
+Każda z tych funkcjonalności została dokładniej omówiona wraz z przykładami kodu źródłowego ilustrującymi kluczowe elementy implementacji.
+
+\section{Testowanie aplikacji}
+
+Testowanie aplikacji zostało oparte o framework JUnit z wykorzystaniem H2 jako bazy danych w pamięci operacyjnej. W projekcie wyróżniono następujące rodzaje testów:
+
+\begin{itemize}
+    \item \textbf{Testy jednostkowe} – weryfikują poprawność działania poszczególnych metod oraz logiki biznesowej.
+    \item \textbf{Testy integracyjne} – obejmują całe ścieżki żądań HTTP i weryfikują poprawną współpracę poszczególnych modułów.
+\end{itemize}
+
+Użycie bazy danych H2 do testów umożliwiło szybkie uruchamianie oraz wysoką izolację testów, co przyspieszyło proces weryfikacji jakości kodu aplikacji.

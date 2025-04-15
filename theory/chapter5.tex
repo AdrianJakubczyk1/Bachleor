@@ -1,0 +1,149 @@
+\chapter{Implementacja}
+
+Ten rozdział omawia szczegółowe aspekty implementacji platformy do udostępniania materiałów edukacyjnych, obejmujące konfigurację środowiska, logikę backendu, integrację frontendową oraz mechanizmy przechowywania danych użyte w projekcie.
+
+\section{Konfiguracja środowiska}
+
+Środowisko deweloperskie zostało przygotowane przez dobór odpowiednich narzędzi, frameworków oraz technologii, które umożliwiają szybkie tworzenie aplikacji, wysoką produktywność oraz solidną architekturę systemu. W projekcie wykorzystano następujące narzędzia i technologie:
+
+\begin{itemize}
+\item \textbf{Język programowania}: Java 21
+\item \textbf{Framework}: Spring Boot 3.x
+\item \textbf{Narzędzie do budowania aplikacji}: Apache Maven
+\item \textbf{IDE}: IntelliJ IDEA
+\item \textbf{Systemy bazodanowe}: PostgreSQL (dane trwałe) oraz H2 Database (w pamięci, używana do statystyk, testowania i zarządzania sesjami)
+\item \textbf{Technologie webowe}: Thymeleaf, Bootstrap 5.2, JavaScript
+\item \textbf{System kontroli wersji}: Git
+\end{itemize}
+
+Zależności zarządzane były za pomocą pliku \texttt{pom.xml} Maven, zapewniając prostą integrację bibliotek zewnętrznych, takich jak Spring Web, Spring Security, JDBC, Thymeleaf oraz frameworków testowych (JUnit, Mockito).
+
+\section{Rozwój backendu}
+
+Backend aplikacji opiera się na architekturze warstwowej, obejmującej kontrolery, serwisy, obiekty dostępu do danych (DAO) oraz repozytoria. Podejście to zapewnia wyraźny podział odpowiedzialności, łatwiejsze utrzymanie oraz testowalność.
+
+\subsection{Uwierzytelnianie i autoryzacja użytkowników}
+
+Uwierzytelnianie użytkowników oraz autoryzacja oparta na rolach zostały zrealizowane za pomocą Spring Security. Hasła są szyfrowane z wykorzystaniem algorytmu haszującego BCrypt, zwiększając bezpieczeństwo.
+
+Zaimplementowane role:
+
+\begin{itemize}
+\item \textbf{Student} – może przeglądać materiały oraz przesyłać rozwiązania.
+\item \textbf{Nauczyciel} – może dodawać materiały oraz oceniać przesłane rozwiązania.
+\item \textbf{Administrator} – zarządza użytkownikami oraz statystykami systemu.
+\end{itemize}
+
+Spring Security został skonfigurowany do zabezpieczenia URL na podstawie ról użytkowników, dostarcza również funkcjonalności logowania, wylogowania oraz zarządzania sesjami.
+
+\subsection{Kontrolery MVC i serwisy}
+
+Kontrolery zarządzają żądaniami oraz odpowiedziami HTTP według wzorca Spring MVC. Kontrolery delegują logikę biznesową do warstw serwisowych, co utrzymuje klarowny podział między obsługą żądań a operacjami biznesowymi.
+
+Przykład implementacji (fragment kontrolera):
+
+\begin{lstlisting}[language=Java]
+@GetMapping("/classes/{classId}/lessons")
+public String viewLessons(@PathVariable Long classId, Model model) {
+List lessons = lessonService.getLessonsForClass(classId);
+model.addAttribute("lessons", lessons);
+return "lessons";
+}
+\end{lstlisting}
+
+Serwisy realizują logikę transakcyjną oraz współpracują z repozytoriami i DAO, aby pobierać i manipulować danymi.
+
+\subsection{Repozytoria i DAO}
+
+Trwałe dane przechowywane są w bazie PostgreSQL, do której dostęp zapewniają repozytoria Spring Data JDBC. Dane tymczasowe, takie jak statystyki aplikacji oraz sesje użytkowników, obsługiwane są przez bazę H2 w pamięci, za pośrednictwem własnych implementacji DAO.
+
+Przykład implementacji DAO:
+
+\begin{lstlisting}[language=Java]
+@Repository
+public class StatsDaoImpl implements StatsDaoImplRepository {
+
+private final NamedParameterJdbcOperations jdbcOperations;
+
+@Autowired
+public StatsDaoImpl(@Qualifier("tempJdbcTemplate") NamedParameterJdbcOperations jdbcOperations) {
+    this.jdbcOperations = jdbcOperations;
+}
+
+public List<AppStatistic> findAllStats() {
+    String sql = "SELECT id, stat_name, stat_value, timestamp FROM app_statistics";
+    return jdbcOperations.query(sql, new BeanPropertyRowMapper<>(AppStatistic.class));
+}
+
+}
+\end{lstlisting}
+
+\subsection{Zadania cykliczne}
+
+Aplikacja wykorzystuje zadania cykliczne (za pomocą Spring Scheduler) do regularnego aktualizowania statystyk aplikacji, takich jak liczba postów, zarejestrowanych użytkowników oraz aktywność użytkowników. Statystyki te przechowywane są w bazie H2 i używane są do analiz administracyjnych.
+
+\begin{lstlisting}[language=Java]
+@Component
+public class StatisticsUpdater {
+
+@Autowired
+private StatsService statsService;
+
+@Scheduled(cron = "*/30 * * * * *")
+public void updateStats() {
+    statsService.updateStatistics();
+}
+
+}
+\end{lstlisting}
+
+\section{Rozwój frontendu}
+
+Frontend został zbudowany z użyciem szablonów Thymeleaf, umożliwiających dynamiczne renderowanie treści bezpośrednio z kontrolerów Spring MVC. Framework Bootstrap zapewnia responsywny oraz estetyczny interfejs użytkownika.
+
+\subsection{Integracja z Thymeleaf}
+
+Thymeleaf oferuje przejrzystą integrację ze Spring Boot, umożliwiając łatwe wiązanie danych i renderowanie danych po stronie serwera:
+
+Przykładowy fragment Thymeleaf:
+
+\begin{lstlisting}[language=HTML]
+
+\subsection{Wykorzystanie komponentów Bootstrap}
+
+Do stylowania wykorzystano Bootstrap 5, upraszczając obsługę CSS oraz zapewniając spójny design na różnych urządzeniach.
+
+\section{Zarządzanie przechowywaniem danych}
+
+W projekcie użyto dwóch baz danych:
+
+\begin{itemize}
+\item \textbf{PostgreSQL} – przechowuje dane trwałe, takie jak użytkownicy, posty, komentarze, lekcje oraz zadania.
+\item \textbf{H2 Database} – do przechowywania danych tymczasowych, danych sesji, statystyk aplikacji oraz celów testowych.
+\end{itemize}
+
+Baza H2 jest inicjalizowana podczas startu aplikacji za pomocą skryptów schematu oraz danych, co pozwala na szybkie testowanie bez wpływu na dane produkcyjne.
+
+Przykładowa konfiguracja bazy H2 w pliku \texttt{application.properties}:
+
+\begin{lstlisting}[language=properties]
+spring.datasource.temp.url=jdbc:h2:mem:tempdb;DB_CLOSE_DELAY=-1
+spring.datasource.temp.username=sa
+spring.datasource.temp.password=
+spring.datasource.temp.driver-class-name=org.h2.Driver
+\end{lstlisting}
+
+\section{Wyzwania implementacyjne i ich rozwiązania}
+
+Podczas implementacji pojawiło się kilka wyzwań, które rozwiązano następująco:
+
+\begin{itemize}
+\item \textbf{Spójność danych pomiędzy bazami PostgreSQL i H2} – rozwiązana przez jasne określenie odpowiedzialności każdej bazy.
+\item \textbf{Synchronizacja zadań cyklicznych} – rozwiązana poprzez właściwą konfigurację wyrażeń cron i izolację zadań.
+\item \textbf{Integracja backendu z frontendem} – rozwiązana przez dokładne wykorzystanie możliwości renderowania po stronie serwera Thymeleaf.
+\end{itemize}
+
+\section{Podsumowanie}
+
+Implementacja platformy do udostępniania materiałów edukacyjnych wykazała efektywne wykorzystanie nowoczesnych technologii oraz frameworków takich jak Spring Boot, PostgreSQL oraz baza danych H2. Ukazała również skuteczne rozwiązania dla typowych wyzwań programistycznych, zapewniając stabilność, bezpieczeństwo oraz przyjazność użytkownikowi stworzonej aplikacji.
+

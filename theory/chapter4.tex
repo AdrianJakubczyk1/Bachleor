@@ -1,0 +1,108 @@
+\chapter{Testowanie i ocena aplikacji}
+
+W niniejszym rozdziale przedstawiono proces testowania aplikacji oraz ocenę poprawności jej działania. Omówione zostały podejścia wykorzystane w testach jednostkowych oraz integracyjnych, a także ocena wydajności aplikacji.
+
+\section{Wprowadzenie do testowania aplikacji}
+
+Testowanie stanowi kluczowy element procesu tworzenia oprogramowania, umożliwiający wykrycie błędów oraz weryfikację poprawności działania zaimplementowanych funkcjonalności. W ramach tej aplikacji wykorzystano dwa główne rodzaje testów:
+
+\begin{itemize}
+    \item Testy jednostkowe – testujące pojedyncze klasy oraz metody.
+    \item Testy integracyjne – sprawdzające poprawność współdziałania wielu komponentów systemu.
+\end{itemize}
+
+\section{Testy jednostkowe}
+
+Testy jednostkowe zostały napisane z użyciem frameworka JUnit 5, który jest szeroko stosowany w aplikacjach Java ze względu na łatwość integracji ze środowiskiem Spring Boot. 
+
+Przykładowe testy jednostkowe objęły klasy:
+
+\begin{itemize}
+    \item Serwisy (np. \texttt{StatsService}), które weryfikują poprawność operacji na danych.
+    \item Klasy DAO (np. \texttt{StatsDaoImpl}), które sprawdzają prawidłowe wykonanie zapytań SQL do bazy danych H2.
+    \item Kontrolery, gdzie przy pomocy MockMVC testowano poprawność zwracanych widoków oraz danych.
+\end{itemize}
+
+\subsection{Przykład testu jednostkowego}
+
+Poniżej przedstawiono przykład testu jednostkowego dla klasy \texttt{StatsService}:
+
+\begin{lstlisting}[language=Java]
+@Test
+void shouldUpdateStatisticsCorrectly() {
+    when(postRepository.count()).thenReturn(10L);
+    when(userRepository.countByRole("TEACHER")).thenReturn(2L);
+
+    statsService.updateStatistics();
+
+    verify(statsDao, times(1)).saveStat(any(AppStatistic.class));
+}
+\end{lstlisting}
+
+Wykorzystanie mechanizmów \texttt{Mockito} pozwoliło na izolację testowanych metod od zewnętrznych zależności.
+
+\section{Testy integracyjne}
+
+Testy integracyjne przeprowadzono z wykorzystaniem frameworka Spring Boot oraz wbudowanej bazy danych H2. Głównym celem było sprawdzenie poprawności współpracy różnych warstw aplikacji.
+
+Do realizacji tych testów wykorzystano:
+
+\begin{itemize}
+    \item \texttt{TestRestTemplate} – do symulacji pełnych zapytań HTTP i sprawdzania zwracanych odpowiedzi.
+    \item Spring Test – zapewniający kompleksową konfigurację środowiska testowego.
+\end{itemize}
+
+\subsection{Przykład testu integracyjnego}
+
+Poniżej przedstawiono przykład testu integracyjnego sprawdzającego poprawność działania strony głównej aplikacji:
+
+\begin{lstlisting}[language=Java]
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class ApplicationIntegrationTests {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Test
+    void shouldLoadHomePageSuccessfully() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Educational Materials Sharing Platform"));
+    }
+}
+\end{lstlisting}
+
+Testy integracyjne potwierdziły poprawne współdziałanie komponentów aplikacji.
+
+\section{Baza danych testowa (H2)}
+
+W trakcie realizacji testów wykorzystano bazę danych H2 działającą w pamięci, która umożliwiła szybkie i bezpieczne wykonywanie operacji CRUD, bez ingerencji w dane produkcyjne. Baza ta została również użyta do przechowywania sesji użytkowników oraz tymczasowych statystyk aplikacji. 
+
+Przykładowa konfiguracja użytej bazy danych:
+
+\begin{lstlisting}[language=properties]
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+\end{lstlisting}
+
+\section{Testy wydajnościowe}
+
+Do oceny wydajności aplikacji przeprowadzono podstawowe testy wydajnościowe, które polegały na symulacji dużego obciążenia generowanego przez jednoczesne zapytania użytkowników. Wyniki wykazały stabilność aplikacji pod obciążeniem oraz akceptowalne czasy odpowiedzi.
+
+Testy przeprowadzono przy użyciu narzędzi takich jak Apache JMeter. Przykładowe parametry testu:
+
+\begin{itemize}
+    \item Liczba jednoczesnych użytkowników: 100.
+    \item Czas trwania testu: 10 minut.
+    \item Średni czas odpowiedzi aplikacji: poniżej 300ms.
+\end{itemize}
+
+Wnioski z testów pokazały, że aplikacja działa wydajnie i jest zdolna obsłużyć przewidywaną liczbę użytkowników.
+
+\section{Podsumowanie wyników testów}
+
+Przeprowadzone testy jednostkowe i integracyjne potwierdziły poprawność działania aplikacji oraz jej zgodność z założonymi wymaganiami funkcjonalnymi. Testy wydajnościowe dodatkowo potwierdziły stabilność aplikacji przy dużym obciążeniu, co umożliwia jej efektywne wdrożenie w środowisku edukacyjnym.
