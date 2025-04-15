@@ -22,7 +22,6 @@ public class TeacherPostController {
     @Autowired
     private UserRepository userRepository;
 
-    // List posts by the teacher.
     @GetMapping
     public String listTeacherPosts(Model model, Principal principal) {
 
@@ -42,15 +41,12 @@ public class TeacherPostController {
         return "teacherPostForm"; // teacherPostForm.html
     }
 
-    // Process new post form submission
     @PostMapping("/new")
     public String addPost(@ModelAttribute Post post, Principal principal) {
-        post.setAuthor(principal.getName());  // assuming Post entity has an "author" field
+        post.setAuthor(principal.getName());
         postRepository.save(post);
         return "redirect:/teacher/posts";
     }
-
-    // Show form to edit an existing post (validate that post.author equals current teacher)
     @GetMapping("/{id}/edit")
     public String showEditPostForm(@PathVariable Long id, Model model, Principal principal) {
         Post post = postRepository.findById(id).orElse(null);
@@ -60,8 +56,6 @@ public class TeacherPostController {
         model.addAttribute("post", post);
         return "teacherPostForm";
     }
-
-    // Process editing the post
     @PostMapping("/{id}/edit")
     public String editPost(@PathVariable Long id, @ModelAttribute Post post, Principal principal) {
         post.setId(id);

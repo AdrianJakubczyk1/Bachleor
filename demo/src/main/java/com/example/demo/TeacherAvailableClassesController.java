@@ -22,16 +22,13 @@ public class TeacherAvailableClassesController {
     @Autowired
     private UserRepository userRepository;
 
-    // List classes with no teacher assigned
     @GetMapping
     public String listAvailableClasses(Model model, Principal principal) {
-        // Fetch available classes
         List<SchoolClass> availableClasses = schoolClassRepository.findByTeacherIdIsNull();
         model.addAttribute("availableClasses", availableClasses);
         return "teacherAvailableClasses"; // teacherAvailableClasses.html
     }
 
-    // Allow teacher to self assign to a class that has no teacher assigned
     @PostMapping("/{id}/assign")
     public String assignSelfToClass(@PathVariable Long id, Principal principal) {
         String username = principal.getName();
@@ -43,7 +40,7 @@ public class TeacherAvailableClassesController {
         Optional<SchoolClass> classOpt = schoolClassRepository.findById(id);
         if (classOpt.isPresent()) {
             SchoolClass cls = classOpt.get();
-            if (cls.getTeacherId() == null) {  // Only assign if no teacher is assigned yet
+            if (cls.getTeacherId() == null) {
                 cls.setTeacherId(teacherId);
                 schoolClassRepository.save(cls);
             }

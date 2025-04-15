@@ -17,9 +17,6 @@ public class GlobalModelAttributes {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * This method adds common attributes to every model.
-     */
     @ModelAttribute
     public void addCommonAttributes(Model model, Principal principal, HttpSession session) {
         boolean loggedIn = (principal != null);
@@ -28,11 +25,7 @@ public class GlobalModelAttributes {
         if (loggedIn) {
             String username = principal.getName();
             model.addAttribute("username", username);
-
-            // First, try to retrieve the "isAdmin" flag from the session.
             Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-
-            // Fallback: if not found in the session, derive from the security context.
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (isAdmin == null) {
                 isAdmin = auth.getAuthorities().stream()
@@ -42,8 +35,6 @@ public class GlobalModelAttributes {
             boolean isTeacher = auth.getAuthorities().stream()
                     .anyMatch(grantedAuthority -> "ROLE_TEACHER".equals(grantedAuthority.getAuthority()));
             model.addAttribute("isTeacher", isTeacher);
-
-            // Optionally, add the user ID to the model.
             User user = userRepository.findByUsername(username);
             if (user != null) {
                 model.addAttribute("userId", user.getId());

@@ -20,7 +20,6 @@ public class TeacherTaskSubmissionController {
     @Autowired
     private TaskSubmissionRepository taskSubmissionRepository;
 
-    // List all ungraded task submissions
     @GetMapping
     public String listUngradedSubmissions(Model model) {
         List<TaskSubmission> ungradedSubmissions = taskSubmissionRepository.findByGradeIsNull();
@@ -28,14 +27,12 @@ public class TeacherTaskSubmissionController {
         return "teacherSubmissions";
     }
 
-    // Download file for a submission (if available)
     @GetMapping("/{id}/download")
     public ResponseEntity<byte[]> downloadSubmissionFile(@PathVariable Long id) {
         Optional<TaskSubmission> submissionOpt = taskSubmissionRepository.findById(id);
         if (submissionOpt.isPresent() && submissionOpt.get().getSolutionFile() != null) {
             TaskSubmission submission = submissionOpt.get();
             HttpHeaders headers = new HttpHeaders();
-            // Use the content type stored for the submission; otherwise fallback to generic type.
             MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
             if (submission.getSolutionContentType() != null) {
                 try {
@@ -55,13 +52,11 @@ public class TeacherTaskSubmissionController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    // Grade a task submission: accept grade and teacher comments.
     @PostMapping("/{id}/grade")
     public String gradeSubmission(@PathVariable Long id,
                                   @RequestParam("grade") Double grade,
                                   @RequestParam("teacherComments") String teacherComments) {
         if (grade < 0 || grade > 10) {
-            // You might redirect with an error message if grade is out of range.
             return "redirect:/teacher/task-submissions?error=invalidGrade";
         }
         Optional<TaskSubmission> submissionOpt = taskSubmissionRepository.findById(id);

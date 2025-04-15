@@ -20,7 +20,6 @@ public class StatsDaoIntegrationTest {
 
     @Test
     public void testSaveAndRetrieveStat() {
-        // Create a new statistic record
         AppStatistic stat = new AppStatistic();
         stat.setStatName("testStat");
         stat.setStatValue(123L);
@@ -28,7 +27,6 @@ public class StatsDaoIntegrationTest {
 
         statsDao.saveStat(stat);
 
-        // Retrieve all stats using the DAO
         List<AppStatistic> stats = statsDao.findAllStats();
 
         boolean found = stats.stream().anyMatch(s -> "testStat".equals(s.getStatName())

@@ -4,11 +4,13 @@ import com.example.demo.data.TaskSubmissionOverview;
 import com.example.demo.persistent.model.Lesson;
 import com.example.demo.persistent.model.LessonTask;
 import com.example.demo.persistent.model.SchoolClass;
+import com.example.demo.persistent.model.User;
 import com.example.demo.persistent.repository.ClassSignUpRepository;
 import com.example.demo.persistent.repository.LessonRepository;
 import com.example.demo.persistent.repository.LessonTaskRepository;
 import com.example.demo.persistent.repository.SchoolClassRepository;
 import com.example.demo.persistent.repository.TaskSubmissionRepository;
+import com.example.demo.persistent.repository.UserRepository;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -37,34 +39,28 @@ public class TeacherTaskOverviewController {
     @Autowired
     private TaskSubmissionRepository taskSubmissionRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/teacher/submissions")
     public String viewTaskSubmissions(Model model, Principal principal) {
-        // Get the currently logged-in teacher using their username.
-        // Using the default mechanism, obtain the teacher's user record from the repository.
         String username = principal.getName();
-        // Assume your UserRepository returns a User with an id (teacherId)
-        // You can call: User teacher = userRepository.findByUsername(username)
-        // For this example, we’ll assume teacherId is resolved as follows:
-        Long teacherId = getTeacherIdFromUsername(username);
+        User teacher = userRepository.findByUsername(username);
+        if (teacher == null) {
+            return "redirect:/login?error=userNotFound";
+        }
+        Long teacherId = teacher.getId();
 
-        // Retrieve classes assigned to this teacher
         List<SchoolClass> teacherClasses = schoolClassRepository.findByTeacherId(teacherId);
         List<TaskSubmissionOverview> overviewList = new ArrayList<>();
 
-        // Loop over classes
         for (SchoolClass schoolClass : teacherClasses) {
-            // Get enrolled student count for this class
             int enrolled = classSignUpRepository.findBySchoolClassIdAndStatus(schoolClass.getId(), "APPROVED").size();
-            // Get lessons for this class
             List<Lesson> lessons = lessonRepository.findBySchoolClassId(schoolClass.getId());
             for (Lesson lesson : lessons) {
-                // For each lesson, get tasks
                 List<LessonTask> tasks = lessonTaskRepository.findByLessonId(lesson.getId());
                 for (LessonTask task : tasks) {
-                    // Count submissions for this task
                     int submitted = taskSubmissionRepository.findByLessonTaskId(task.getId()).size();
-
-                    // Calculate remaining time in seconds, if a due date is set
                     long secondsRemaining = 0;
                     if (task.getDueDate() != null) {
                         LocalDateTime now = LocalDateTime.now();
@@ -72,7 +68,6 @@ public class TeacherTaskOverviewController {
                             secondsRemaining = Duration.between(now, task.getDueDate()).getSeconds();
                         }
                     }
-
                     TaskSubmissionOverview overview = new TaskSubmissionOverview();
                     overview.setTask(task);
                     overview.setSchoolClass(schoolClass);
@@ -85,12 +80,6 @@ public class TeacherTaskOverviewController {
             }
         }
         model.addAttribute("overviewList", overviewList);
-        return "teacherTaskOverview"; // points to teacherTaskOverview.html
-    }
-
-    // Replace this dummy method with your actual logic to retrieve teacherId from the username.
-    private Long getTeacherIdFromUsername(String username) {
-        // For demonstration, assume teacher "teacher1" has id=3, others id=4.
-        return "teacher1".equalsIgnoreCase(username) ? 3L : 4L;
+        return "teacherTaskOverview";
     }
 }

@@ -18,7 +18,6 @@ public class AdminLessonTaskController {
     @Autowired
     private LessonTaskRepository lessonTaskRepository;
 
-    // Display list of tasks for a lesson and a link to add a new task.
     @GetMapping
     public String listTasks(@PathVariable Long lessonId, Model model) {
         List<LessonTask> tasks = lessonTaskRepository.findByLessonId(lessonId);
@@ -27,33 +26,28 @@ public class AdminLessonTaskController {
         return "adminLessonTaskList"; // Corresponds to adminLessonTaskList.html
     }
 
-    // Show form to create a new task for the lesson.
     @GetMapping("/new")
     public String newTask(@PathVariable Long lessonId, Model model) {
         model.addAttribute("lessonId", lessonId);
-        return "adminLessonTaskForm"; // Corresponds to adminLessonTaskForm.html
+        return "adminLessonTaskForm";
     }
 
-    // Process the creation of a new task.
-    // For simplicity, the form includes a string representation of a due date.
     @PostMapping("/new")
     public String createTask(@PathVariable Long lessonId,
                              @RequestParam String title,
                              @RequestParam String description,
-                             @RequestParam String dueDate, // Format: yyyy-MM-dd'T'HH:mm or similar
+                             @RequestParam String dueDate,
                              @RequestParam(required = false, defaultValue = "true") boolean solutionRequired) {
         LessonTask task = new LessonTask();
         task.setLessonId(lessonId);
         task.setTitle(title);
         task.setDescription(description);
-        // Parse the due date string to LocalDateTime.
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         try {
             task.setDueDate(LocalDateTime.parse(dueDate, formatter));
         } catch (Exception e) {
-            // Handle parsing error (e.g., set default due date or send an error message)
             e.printStackTrace();
-            task.setDueDate(LocalDateTime.now().plusDays(7)); // default to 7 days later
+            task.setDueDate(LocalDateTime.now().plusDays(7));
         }
         task.setSolutionRequired(solutionRequired);
         lessonTaskRepository.save(task);

@@ -84,8 +84,6 @@ public class AdminClassesController {
 
         model.addAttribute("schoolClass", schoolClass);
 
-        // Retrieve list of all teachers from the user repository
-        // You may want to add a custom query method like findTeachers() in your UserRepository.
         List<User> teachers = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                 .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole()))
                 .collect(Collectors.toList());
@@ -94,7 +92,6 @@ public class AdminClassesController {
         return "adminClassForm";
     }
 
-    // Process new class form submission
     @PostMapping("/new")
     public String addClass(@ModelAttribute SchoolClass schoolClass,  @RequestParam(value="signupDeadlineStr", required=false) String signupDeadlineStr,  @RequestParam(value="hasDeadline", required=false) String hasDeadline) {
 
@@ -102,7 +99,6 @@ public class AdminClassesController {
             schoolClass.setSignupDeadline(null);
         } else {
             try {
-                // For a datetime-local input, the value is in the format "yyyy-MM-dd'T'HH:mm"
                 LocalDateTime deadline = LocalDateTime.parse(signupDeadlineStr, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 schoolClass.setSignupDeadline(deadline);
             } catch (Exception e) {
@@ -132,19 +128,15 @@ public class AdminClassesController {
             List<User> allStudents = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                     .filter(u -> "USER".equalsIgnoreCase(u.getRole()))
                     .collect(Collectors.toList());
-            // Retrieve enrollments for this class
             List<ClassSignUp> enrollments = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
             Set<Long> enrolledStudentIds = enrollments.stream()
                     .map(ClassSignUp::getUserId)
                     .collect(Collectors.toSet());
-            // Only include students not already enrolled
             List<User> availableStudents = allStudents.stream()
                     .filter(u -> !enrolledStudentIds.contains(u.getId()))
                     .collect(Collectors.toList());
             model.addAttribute("availableStudents", availableStudents);
 
-            // Retrieve list of all teachers from the user repository
-            // You may want to add a custom query method like findTeachers() in your UserRepository.
             List<User> teachers = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                     .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole()))
                     .collect(Collectors.toList());
@@ -164,7 +156,6 @@ public class AdminClassesController {
             schoolClass.setSignupDeadline(null);
         } else {
             try {
-                // For a datetime-local input, the value is in the format "yyyy-MM-dd'T'HH:mm"
                 LocalDateTime deadline = LocalDateTime.parse(signupDeadlineStr, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 schoolClass.setSignupDeadline(deadline);
             } catch (Exception e) {
@@ -181,7 +172,6 @@ public class AdminClassesController {
                     ClassSignUp signUp = new ClassSignUp();
                     signUp.setSchoolClassId(id);
                     signUp.setUserId(studentId);
-                    // Decide on default status ("APPROVED" or "PENDING")
                     signUp.setStatus("APPROVED");
                     signUp.setCreatedDate(LocalDateTime.now());
                     classSignUpRepository.save(signUp);

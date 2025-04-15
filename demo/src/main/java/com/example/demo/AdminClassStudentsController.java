@@ -28,12 +28,6 @@ public class AdminClassStudentsController {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Display a page with:
-     * - List of enrolled (or pending) students for a class,
-     *   showing each student’s first and last name, status, and enrollment date.
-     * - A form to add a new student enrollment.
-     */
     @GetMapping
     public String viewClassStudents(@PathVariable Long classId, Model model) {
         Optional<SchoolClass> classOpt = schoolClassRepository.findById(classId);
@@ -42,11 +36,9 @@ public class AdminClassStudentsController {
         }
         SchoolClass schoolClass = classOpt.get();
 
-        // Get all sign-ups (enrollments) for this class.
         List<ClassSignUp> signUps = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
         List<ClassSignUpDetail> signUpDetails = new ArrayList<>();
 
-        // For each sign-up, load the student details.
         for (ClassSignUp signUp : signUps) {
             Optional<User> userOpt = userRepository.findById(signUp.getUserId());
             if (userOpt.isPresent()) {
@@ -65,8 +57,6 @@ public class AdminClassStudentsController {
         model.addAttribute("schoolClass", schoolClass);
         model.addAttribute("signUpDetails", signUpDetails);
 
-        // Also, prepare a list of available students to add.
-        // For this, retrieve all users with role "USER" and remove those already enrolled in the class.
         List<User> allStudents = new ArrayList<>();
         userRepository.findAll().forEach(u -> {
             if ("USER".equalsIgnoreCase(u.getRole())) {
@@ -83,7 +73,7 @@ public class AdminClassStudentsController {
         }
         model.addAttribute("availableStudents", availableStudents);
 
-        return "adminClassStudents"; // This template will display the list and provide add/remove actions.
+        return "adminClassStudents";
     }
 
     /**
@@ -95,10 +85,6 @@ public class AdminClassStudentsController {
         return "redirect:/admin/classes/" + classId + "/students";
     }
 
-    /**
-     * Process adding a new student enrollment to a class.
-     * The student to add is selected by ID from the availableStudents dropdown.
-     */
     @PostMapping("/add")
     public String addStudent(@PathVariable Long classId, @RequestParam Long studentId) {
         // Check if enrollment already exists
@@ -107,7 +93,6 @@ public class AdminClassStudentsController {
             ClassSignUp newSignUp = new ClassSignUp();
             newSignUp.setSchoolClassId(classId);
             newSignUp.setUserId(studentId);
-            // Depending on your business rule, you may set new enrollments as APPROVED or PENDING
             newSignUp.setStatus("APPROVED");
             newSignUp.setCreatedDate(java.time.LocalDateTime.now());
             classSignUpRepository.save(newSignUp);

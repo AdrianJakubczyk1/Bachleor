@@ -23,7 +23,7 @@ public class LessonRatingController {
         if (principal == null) {
             return "redirect:/login";
         }
-        // Here, assume a helper method to obtain userId from the principal.
+
         Long userId = getUserId(principal.getName());
         Optional<LessonRating> existing = lessonRatingRepository.findByLessonIdAndUserId(lessonId, userId);
         LessonRating lr = existing.orElseGet(LessonRating::new);
@@ -32,11 +32,9 @@ public class LessonRatingController {
         lr.setRating(rating);
         lr.setCreatedDate(LocalDateTime.now());
         lessonRatingRepository.save(lr);
-        // Redirect back to a lesson detail page (or class detail page) as desired.
+
         return "redirect:/lessons/" + lessonId;
     }
-
-    // Dummy helper: in a real app, use your user service
     private Long getUserId(String username) {
         return "admin".equalsIgnoreCase(username) ? 1L : 2L;
     }
