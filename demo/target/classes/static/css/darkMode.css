@@ -1,0 +1,18 @@
+/* dark_mode.css */
+.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.dark-mode .navbar,
+.dark-mode .footer,
+.dark-mode .sidebar {
+  background-color: #1f1f1f;
+  border-color: #333;
+}
+
+.dark-mode .card {
+  background-color: #1f1f1f;
+  border-color: #333;
+  color: #e0e0e0;
+}

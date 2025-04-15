@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Students</title>
+    <link rel="stylesheet" href="/css/dark_mode.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{common :: navbar(loggedIn=${loggedIn}, isAdmin=${isAdmin}, title=${title})}"></div>
+
+<div class="container mt-5">
+    <h2 th:text="'Students in ' + ${schoolClass.name}">Students in Class</h2>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Student ID</th>
+            <th>Status</th>
+            <th>Submitted Date</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="signup : ${classSignUps}">
+            <td th:text="${signup.userId}">Student ID</td>
+            <td th:text="${signup.status}">Status</td>
+            <td th:text="${#temporals.format(signup.createdDate, 'dd MMM yyyy HH:mm')}">Submission Date</td>
+            <td>
+                <!-- If the sign-up is pending, show Approve and Reject buttons -->
+                <div th:if="${signup.status == 'PENDING'}">
+                    <form th:action="@{'/teacher/classes/' + ${schoolClass.id} + '/students/' + ${signup.id} + '/approve'}" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form th:action="@{'/teacher/classes/' + ${schoolClass.id} + '/students/' + ${signup.id} + '/reject'}" method="post" style="display:inline; margin-left: 5px;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </div>
+                <!-- If not pending, display no actions -->
+                <div th:if="${signup.status != 'PENDING'}">
+                    <em>No actions available</em>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="/teacher/classes" class="btn btn-secondary mt-3">Back to My Classes</a>
+</div>
+
+<div th:replace="common :: footer"></div>
+<script src="/js/dark_mode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
