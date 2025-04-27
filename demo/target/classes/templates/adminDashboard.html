@@ -13,7 +13,6 @@
 
 <div class="dashboard-container">
 
-    <!-- Left sidebar for main navigation (if needed) -->
     <div class="left-sidebar">
         <div class="list-group list-group-flush">
             <a href="/admin/classes" class="list-group-item list-group-item-action">Manage Classes</a>
@@ -24,7 +23,7 @@
 
 
 <!-- Main Content Area -->
-<div class="content">
+<div class="main-content">
     <div class="container">
         <h2>Admin Dashboard</h2>
         <p>Below is the overview of application statistics:</p>
@@ -40,62 +39,67 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
+    var existingChart = Chart.getChart("statsChart");
+if (existingChart) {
+    existingChart.destroy();
+}
 
-    var labels = /*[[${statsLabels}]]*/ [];
-      var values = /*[[${statsValues}]]*/ [];
+var labels = /*[[${statsLabels}]]*/ [];
+  var values = /*[[${statsValues}]]*/ [];
 
-      var backgroundColors = [
-        'rgba(255, 99, 132, 0.5)',
-        'rgba(54, 162, 235, 0.5)',
-        'rgba(255, 206, 86, 0.5)',
-        'rgba(75, 192, 192, 0.5)',
-        'rgba(153, 102, 255, 0.5)',
-        'rgba(255, 159, 64, 0.5)'
-      ];
-      var borderColors = [
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-        'rgba(255, 159, 64, 1)'
-      ];
+  var backgroundColors = [
+    'rgba(255, 99, 132, 0.5)',
+    'rgba(54, 162, 235, 0.5)',
+    'rgba(255, 206, 86, 0.5)',
+    'rgba(75, 192, 192, 0.5)',
+    'rgba(153, 102, 255, 0.5)',
+    'rgba(255, 159, 64, 0.5)'
+  ];
+  var borderColors = [
+    'rgba(255, 99, 132, 1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(255, 206, 86, 1)',
+    'rgba(75, 192, 192, 1)',
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
+  ];
 
-      function getBackgroundColor(index) {
-        return backgroundColors[index % backgroundColors.length];
-      }
-      function getBorderColor(index) {
-        return borderColors[index % borderColors.length];
-      }
+  function getBackgroundColor(index) {
+    return backgroundColors[index % backgroundColors.length];
+  }
+  function getBorderColor(index) {
+    return borderColors[index % borderColors.length];
+  }
 
-      var barColors = labels.map((_, idx) => getBackgroundColor(idx));
-      var barBorders = labels.map((_, idx) => getBorderColor(idx));
+  var barColors = labels.map((_, idx) => getBackgroundColor(idx));
+  var barBorders = labels.map((_, idx) => getBorderColor(idx));
 
-      var ctx = document.getElementById('statsChart').getContext('2d');
-      var statsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Application Statistics',
-            data: values,
-            backgroundColor: barColors,
-            borderColor: barBorders,
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            x: { ticks: { color: '#fff' } },
-            y: { beginAtZero: true, ticks: { color: '#fff' } }
-          },
-          plugins: {
-            legend: {
-              labels: { color: '#fff' }
-            }
-          }
+  var ctx = document.getElementById('statsChart').getContext('2d');
+  var statsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Application Statistics',
+        data: values,
+        backgroundColor: barColors,
+        borderColor: barBorders,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        x: { ticks: { color: '#fff' } },
+        y: { beginAtZero: true, ticks: { color: '#fff' } }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#fff' }
         }
-      });
+      }
+    }
+  });
 </script>
+<script th:src="@{/js/darkMode.js}"></script>
 </body>
 </html>

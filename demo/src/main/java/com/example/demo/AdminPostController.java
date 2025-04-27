@@ -31,14 +31,14 @@ public class AdminPostController {
 
     @GetMapping("/new")
     public String showAddPostForm() {
-        return "adminPostForm"; // Corresponds to adminPostForm.html
+        return "adminPostForm";
     }
 
-    // Handle the submission of the new post form
     @PostMapping("/new")
     public String addPost(@RequestParam String title,
                           @RequestParam String content,
-                          @RequestParam(value = "file", required = false) MultipartFile file) {
+                          @RequestParam(value="thumbnailFile", required=false) MultipartFile thumbnailFile,
+                          @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
         Post post = new Post();
         post.setTitle(title);
         post.setContent(content);
@@ -49,13 +49,20 @@ public class AdminPostController {
                 post.setAttachmentFilename(file.getOriginalFilename());
                 post.setAttachmentContentType(file.getContentType());
             } catch (IOException e) {
-                // Handle the exception (e.g., log the error)
+
                 e.printStackTrace();
             }
         }
-        // Save the post to the persistent database (PostgreSQL)
+
+        // handle new thumbnail
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            post.setThumbnail(thumbnailFile.getBytes());
+            post.setThumbnailFilename(thumbnailFile.getOriginalFilename());
+            post.setThumbnailContentType(thumbnailFile.getContentType());
+        }
+
         postRepository.save(post);
-        return "redirect:/admin/posts"; // Redirect back to the posts list
+        return "redirect:/admin/posts";
     }
 
     // Show form to edit an existing post
@@ -64,16 +71,16 @@ public class AdminPostController {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             model.addAttribute("post", postOpt.get());
-            return "adminPostEditForm"; // adminPostEditForm.html view
+            return "adminPostEditForm";
         }
         return "redirect:/admin/posts";
     }
 
-    // Handle updating an existing post
     @PostMapping("/{id}/edit")
     public String updatePost(@PathVariable Long id,
                              @RequestParam String title,
                              @RequestParam String content,
+                             @RequestParam(value="thumbnailFile", required=false) MultipartFile thumbnailFile,
                              @RequestParam(value = "file", required = false) MultipartFile file) {
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
@@ -85,6 +92,11 @@ public class AdminPostController {
                     post.setAttachment(file.getBytes());
                     post.setAttachmentFilename(file.getOriginalFilename());
                     post.setAttachmentContentType(file.getContentType());
+                }
+                if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+                    post.setThumbnail(thumbnailFile.getBytes());
+                    post.setThumbnailFilename(thumbnailFile.getOriginalFilename());
+                    post.setThumbnailContentType(thumbnailFile.getContentType());
                 }
             } catch (Exception e) {
                 e.printStackTrace();

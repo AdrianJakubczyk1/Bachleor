@@ -1,4 +1,7 @@
 package com.example.demo.integration;
+import com.example.demo.persistent.model.ClassSignUp;
+import com.example.demo.persistent.model.SchoolClass;
+import com.example.demo.persistent.model.User;
 import com.example.demo.persistent.repository.ClassSignUpRepository;
 import com.example.demo.persistent.repository.SchoolClassRepository;
 import com.example.demo.persistent.repository.UserRepository;
@@ -6,64 +9,125 @@ import com.example.demo.persistent.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import com.example.demo.persistent.model.ClassSignUp;
+import com.example.demo.persistent.model.SchoolClass;
+import com.example.demo.persistent.model.User;
+import com.example.demo.persistent.repository.ClassSignUpRepository;
+import com.example.demo.persistent.repository.SchoolClassRepository;
+import com.example.demo.persistent.repository.UserRepository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
 import java.time.LocalDateTime;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "spring.session.store-type=none",
+                "spring.task.scheduling.enabled=false"
+        }
+)
+@ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@Sql(scripts = "/test-schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Transactional
 class AdminClassStudentsControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private SchoolClassRepository schoolClassRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ClassSignUpRepository classSignUpRepository;
 
-    @Autowired
-    private SchoolClassRepository schoolClassRepository;
-
-    @Autowired
-    private ClassSignUpRepository classSignUpRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private DataSource dataSource;
-
-    private JdbcTemplate jdbcTemplate;
+    private SchoolClass mathClass;
+    private User teacher;
+    private User user1;
+    private User user2;
+    private User admin;
+    private ClassSignUp signup;
 
     @BeforeEach
     void setup() {
-        jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute("DELETE FROM class_sign_up");
-        jdbcTemplate.execute("DELETE FROM school_class");
-        jdbcTemplate.execute("DELETE FROM user");
+        classSignUpRepository.deleteAll();
+        schoolClassRepository.deleteAll();
+        userRepository.deleteAll();
 
-        // Seed test data
-        jdbcTemplate.update("INSERT INTO school_class(id, name) VALUES (?,?)", 1, "Math 101");
+        teacher = new User();
+        teacher.setUsername("teach");
+        teacher.setPassword("pw");
+        teacher.setFirstName("Teach");
+        teacher.setLastName("Er");
+        teacher.setRole("TEACHER");
+        teacher = userRepository.save(teacher);
 
-        jdbcTemplate.update("INSERT INTO user(id, first_name, last_name, role) VALUES (?,?,?,?)",
-                100, "John", "Doe", "USER");
-        jdbcTemplate.update("INSERT INTO user(id, first_name, last_name, role) VALUES (?,?,?,?)",
-                101, "Jane", "Smith", "USER");
-        jdbcTemplate.update("INSERT INTO user(id, first_name, last_name, role) VALUES (?,?,?,?)",
-                102, "Bob", "Admin", "ADMIN");
+        mathClass = new SchoolClass();
+        mathClass.setName("Math 101");
+        mathClass.setTeacherId(teacher.getId());
+        mathClass = schoolClassRepository.save(mathClass);
 
-        jdbcTemplate.update("INSERT INTO class_sign_up(id, school_class_id, user_id, status, created_date) VALUES (?,?,?,?,?)",
-                1, 1, 100, "APPROVED", LocalDateTime.now());
+        user1 = new User();
+        user1.setUsername("john");
+        user1.setPassword("password123");
+        user1.setFirstName("John");
+        user1.setLastName("Doe");
+        user1.setRole("USER");
+        user1 = userRepository.save(user1);
+
+        user2 = new User();
+        user2.setUsername("jane");
+        user2.setPassword("password123");
+        user2.setFirstName("Jane");
+        user2.setLastName("Smith");
+        user2.setRole("USER");
+        user2 = userRepository.save(user2);
+
+        admin = new User();
+        admin.setUsername("bob");
+        admin.setPassword("password123");
+        admin.setFirstName("Bob");
+        admin.setLastName("Admin");
+        admin.setRole("ADMIN");
+        admin = userRepository.save(admin);
+
+        signup = new ClassSignUp();
+        signup.setSchoolClassId(mathClass.getId());
+        signup.setUserId(user1.getId());
+        signup.setStatus("APPROVED");
+        signup.setCreatedDate(LocalDateTime.now());
+        signup = classSignUpRepository.save(signup);
     }
 
     @Test
     void testViewClassStudents_Success() throws Exception {
-        mockMvc.perform(get("/admin/classes/1/students"))
+        mockMvc.perform(get("/admin/classes/" + mathClass.getId() + "/students").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("adminClassStudents"))
                 .andExpect(model().attributeExists("schoolClass"))
@@ -80,42 +144,38 @@ class AdminClassStudentsControllerTest {
 
     @Test
     void testRemoveStudent() throws Exception {
-        mockMvc.perform(post("/admin/classes/1/students/1/remove"))
+        mockMvc.perform(post("/admin/classes/" + mathClass.getId()
+                        + "/students/" + signup.getId() + "/remove")
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/classes/1/students"));
+                .andExpect(redirectedUrl("/admin/classes/" + mathClass.getId() + "/students"));
 
-        // Ensure student enrollment was deleted
-        int count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM class_sign_up WHERE id = ?", Integer.class, 1);
-        assert(count == 0);
+        assertThat(classSignUpRepository.existsById(signup.getId())).isFalse();
     }
 
     @Test
     void testAddStudent_AlreadyExists() throws Exception {
-        mockMvc.perform(post("/admin/classes/1/students/add")
+        mockMvc.perform(post("/admin/classes/" + mathClass.getId() + "/students/add")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("studentId", "100"))
+                        .param("studentId", String.valueOf(user1.getId())))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/classes/1/students"));
+                .andExpect(redirectedUrl("/admin/classes/" + mathClass.getId() + "/students"));
 
-        // Ensure no new duplicate entry was created
-        int count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM class_sign_up WHERE school_class_id=? AND user_id=?",
-                Integer.class, 1, 100);
-        assert(count == 1);
+        long count = classSignUpRepository.countBySchoolClassIdAndUserId(mathClass.getId(), user1.getId());
+        assertThat(count).isEqualTo(1);
     }
 
     @Test
     void testAddStudent_NewEnrollment() throws Exception {
-        mockMvc.perform(post("/admin/classes/1/students/add")
+        mockMvc.perform(post("/admin/classes/" + mathClass.getId() + "/students/add")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("studentId", "101"))
+                        .param("studentId", String.valueOf(user2.getId())))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/classes/1/students"));
+                .andExpect(redirectedUrl("/admin/classes/" + mathClass.getId() + "/students"));
 
-        // Ensure a new enrollment is created
-        int count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM class_sign_up WHERE school_class_id=? AND user_id=?",
-                Integer.class, 1, 101);
-        assert(count == 1);
+        long count = classSignUpRepository.countBySchoolClassIdAndUserId(mathClass.getId(), user2.getId());
+        assertThat(count).isEqualTo(1);
     }
 }

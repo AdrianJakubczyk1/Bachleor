@@ -11,12 +11,9 @@ public class ClassSignUp {
 
     private Long schoolClassId;
     private Long userId;
-    // Status can be "PENDING", "APPROVED", or "REJECTED"
     private String status;
 
     private LocalDateTime createdDate;
-
-    // Getters and setters
 
     public Long getId() {
         return id;

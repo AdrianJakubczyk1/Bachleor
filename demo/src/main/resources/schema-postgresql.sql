@@ -132,3 +132,8 @@ ALTER TABLE users
         grade NUMERIC,
         teacher_comments TEXT
     );
+
+    ALTER TABLE posts
+      ADD COLUMN thumbnail BYTEA,
+      ADD COLUMN thumbnail_filename VARCHAR(255),
+      ADD COLUMN thumbnail_content_type VARCHAR(100);

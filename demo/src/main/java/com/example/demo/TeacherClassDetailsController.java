@@ -12,7 +12,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,46 +36,47 @@ public class TeacherClassDetailsController {
 
     @GetMapping("/teacher/classes/{classId}/students")
     public String viewClassStudents(@PathVariable Long classId, Model model, Principal principal) {
-        // Retrieve the class.
         Optional<SchoolClass> classOpt = schoolClassRepository.findById(classId);
         if (!classOpt.isPresent()) {
             return "redirect:/teacher/classes?error=classNotFound";
         }
         SchoolClass schoolClass = classOpt.get();
 
-        // Retrieve teacher's user record to get the teacher's ID.
         User teacher = userRepository.findByUsername(principal.getName());
         if (teacher == null) {
             return "redirect:/login";
         }
-        // Ensure the logged-in teacher is assigned to this class.
         if (schoolClass.getTeacherId() == null || !schoolClass.getTeacherId().equals(teacher.getId())) {
             return "redirect:/teacher/classes?error=notAuthorized";
         }
-
-        // Get all sign-ups for the class (e.g. enrolled students).
         List<ClassSignUp> signups = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
 
+        List<ClassSignUpDetail> signupDetails = new ArrayList<>();
+        for (ClassSignUp su : signups) {
+            userRepository.findById(su.getUserId()).ifPresent(user -> {
+                ClassSignUpDetail detail = new ClassSignUpDetail();
+                detail.setSignUpId(su.getId());
+                detail.setStudentId(user.getId());
+                detail.setFirstName(user.getFirstName());
+                detail.setLastName(user.getLastName());
+                detail.setStatus(su.getStatus());
+                detail.setCreatedDate(su.getCreatedDate());
+                signupDetails.add(detail);
+            });
+        }
+
         model.addAttribute("schoolClass", schoolClass);
-        model.addAttribute("classSignUps", signups);
+        model.addAttribute("signupDetails", signupDetails);
         Iterable<Lesson> lessons = lessonRepository.findBySchoolClassId(classId);
         model.addAttribute("lessons", lessons);
 
-        // Get the list of enrolled students for this class.
-        List<User> enrolledStudents = signups.stream()
-                .map(signup -> userRepository.findById(signup.getUserId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-        model.addAttribute("enrolledStudents", enrolledStudents);
-        return "teacherClassStudents"; // This will be our template to list enrolled students.
+        return "teacherClassStudents";
     }
 
     @PostMapping("/teacher/classes/{classId}/students/{signupId}/approve")
     public String approveSignup(@PathVariable Long classId, @PathVariable Long signupId) {
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
-            // Remove the signup record once it is approved
             classSignUpRepository.delete(opt.get());
         }
         return "redirect:/teacher/classes/" + classId + "/students";
@@ -85,7 +86,6 @@ public class TeacherClassDetailsController {
     public String rejectSignup(@PathVariable Long classId, @PathVariable Long signupId) {
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
-            // Remove the signup record once it is rejected
             classSignUpRepository.delete(opt.get());
         }
         return "redirect:/teacher/classes/" + classId + "/students";

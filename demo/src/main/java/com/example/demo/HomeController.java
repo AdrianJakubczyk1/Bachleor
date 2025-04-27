@@ -15,15 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Controller
 public class HomeController {
 
-    @Autowired
-    private PostRepository postRepository;
 
     @GetMapping("/")
     public String home(Model model, Principal principal, HttpSession session) {
         model.addAttribute("title", "Educational Materials Sharing Platform");
         model.addAttribute("message", "Welcome to our educational app! Here you can share and explore educational materials.");
-        Iterable<Post> posts = postRepository.findAll();
-        model.addAttribute("posts", posts);
 
         return "index";
     }

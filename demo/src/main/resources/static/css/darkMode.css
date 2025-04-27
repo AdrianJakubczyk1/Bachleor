@@ -1,18 +1,24 @@
-/* dark_mode.css */
-.dark-mode {
+
+body {
   background-color: #121212;
   color: #e0e0e0;
 }
-
-.dark-mode .navbar,
-.dark-mode .footer,
-.dark-mode .sidebar {
-  background-color: #1f1f1f;
-  border-color: #333;
+html, body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
 }
 
-.dark-mode .card {
-  background-color: #1f1f1f;
-  border-color: #333;
-  color: #e0e0e0;
+
+.content,
+.container {
+  flex: 1 0 auto;
+}
+
+
+.footer {
+  flex-shrink: 0;
 }

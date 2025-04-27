@@ -9,22 +9,15 @@ public class Comment {
     @Id
     private Long id;
 
-    // Reference to the post
     private Long postId;
 
-    // Author of the comment
     private String username;
 
-    // Comment text
     private String text;
 
-    // Number of likes (default 0)
     private Integer likes;
-
-    // Date/time when the comment was created
     private LocalDateTime createdDate;
 
-    // Getters and Setters
 
     public Long getId() {
         return id;

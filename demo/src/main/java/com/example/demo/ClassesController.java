@@ -38,7 +38,6 @@ public class ClassesController {
     @Autowired
     private LessonTaskRepository lessonTaskRepository;
 
-    // List all available classes
     @GetMapping("/classes")
     public String listClasses(Model model) {
         Iterable<SchoolClass> classes = schoolClassRepository.findAll();
@@ -46,7 +45,6 @@ public class ClassesController {
         return "classes"; // classes.html
     }
 
-    // Display class detail
     @GetMapping("/classes/{id}")
     public String classDetail(@PathVariable Long id, Model model, Principal principal) {
         Optional<SchoolClass> classOpt = schoolClassRepository.findById(id);
@@ -74,14 +72,13 @@ public class ClassesController {
             }
             model.addAttribute("schoolClass", schoolClass);
 
-            // Retrieve lessons for the class
             List<Lesson> lessons = StreamSupport
                     .stream(lessonRepository.findBySchoolClassId(id).spliterator(), false)
                     .collect(Collectors.toList());
             model.addAttribute("lessons", lessons);
 
 
-            return "classDetail"; // classDetail.html
+            return "classDetail";
         }
         return "redirect:/classes";
     }
@@ -103,7 +100,6 @@ public class ClassesController {
             signup.setSchoolClassId(id);
             signup.setUserId(userId);
 
-            // Retrieve the class to check auto-approval policy
             SchoolClass schoolClass = schoolClassRepository.findById(id).orElse(null);
             if (schoolClass != null && Boolean.TRUE.equals(schoolClass.getAutoApprove())) {
                 signup.setStatus("APPROVED");

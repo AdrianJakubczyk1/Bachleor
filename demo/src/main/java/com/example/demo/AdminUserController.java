@@ -38,16 +38,12 @@ public class AdminUserController {
 
     @GetMapping
     public String listUsers(Model model) {
-        // Convert the Iterable to a List
         List<User> users = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        // Map that will hold user id -> comma-separated string of class names
         Map<Long, String> userClassesMap = new HashMap<>();
 
         for (User user : users) {
-            // Retrieve sign-ups for this user
             List<ClassSignUp> signups = classSignUpRepository.findByUserId(user.getId());
-            // Convert sign-ups to class names
             String classNames = signups.stream()
                     .map(signup -> schoolClassRepository.findById(signup.getSchoolClassId()))
                     .filter(Optional::isPresent)
@@ -56,7 +52,6 @@ public class AdminUserController {
             userClassesMap.put(user.getId(), classNames);
         }
 
-        // Add the list of users and the classes mapping to the model
         model.addAttribute("users", users);
         model.addAttribute("userClassesMap", userClassesMap);
         return "adminUsers"; // This corresponds to adminUsers.html
@@ -76,8 +71,10 @@ public class AdminUserController {
                           @RequestParam(value = "classIds", required = false) List<Long> classIds,   Model model) {
 
         model.addAttribute("errorMessage", "Username " + user.getUsername() + " already exists.");
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
 
-        // Save the new user; ensure that user.id is populated (if using auto-generated ID)
         userRepository.save(user);
 
         if (classIds != null && !classIds.isEmpty()) {
@@ -91,7 +88,7 @@ public class AdminUserController {
                 classSignUpRepository.save(signup);
             }
         }
-        return "redirect:/admin/users"; // Redirect to the list of users
+        return "redirect:/admin/users";
     }
 
     @GetMapping("/{id}/edit")
@@ -100,14 +97,11 @@ public class AdminUserController {
         if (opt.isPresent()) {
             User user = opt.get();
             model.addAttribute("user", user);
-
-            // Retrieve all available classes from the persistent schoolClassRepository
             List<SchoolClass> classes = StreamSupport
                     .stream(schoolClassRepository.findAll().spliterator(), false)
                     .collect(Collectors.toList());
             model.addAttribute("classes", classes);
 
-            // Retrieve the class IDs for classes this user is already enrolled in
             List<Long> assignedClasses = classSignUpRepository.findByUserId(user.getId())
                     .stream()
                     .map(ClassSignUp::getSchoolClassId)

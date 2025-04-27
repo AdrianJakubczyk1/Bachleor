@@ -1,23 +1,18 @@
 package com.example.demo;
 
-import com.example.demo.persistent.model.Lesson;
-import com.example.demo.persistent.model.LessonTask;
-import com.example.demo.persistent.model.SchoolClass;
-import com.example.demo.persistent.model.User;
-import com.example.demo.persistent.repository.LessonRepository;
-import com.example.demo.persistent.repository.LessonTaskRepository;
-import com.example.demo.persistent.repository.SchoolClassRepository;
-import com.example.demo.persistent.repository.UserRepository;
+import com.example.demo.persistent.model.*;
+import com.example.demo.persistent.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.Optional;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/teacher/classes/{classId}/lessons")
@@ -35,6 +30,9 @@ public class TeacherLessonsController {
     @Autowired
     private LessonTaskRepository lessonTaskRepository;
 
+    @Autowired
+    private ClassSignUpRepository classSignUpRepository;
+
     private boolean isTeacherAssignedToClass(Long teacherId, SchoolClass schoolClass) {
         return schoolClass != null && teacherId.equals(schoolClass.getTeacherId());
     }
@@ -46,10 +44,17 @@ public class TeacherLessonsController {
         if (!isTeacherAssignedToClass(teacher.getId(), schoolClass)) {
             return "redirect:/teacher/classes?error=notAuthorized";
         }
+        List<ClassSignUp> signups = classSignUpRepository.findBySchoolClassId(classId);
+        List<User> enrolledStudents = signups.stream()
+                .map(su -> userRepository.findById(su.getUserId()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
 
         List<Lesson> lessons = lessonRepository.findBySchoolClassId(classId);
         model.addAttribute("lessons", lessons);
         model.addAttribute("schoolClass", schoolClass);
+        model.addAttribute("enrolledStudents", enrolledStudents);
         return "teacherClassLessons";
     }
 
@@ -65,10 +70,8 @@ public class TeacherLessonsController {
                              @ModelAttribute Lesson lesson,
                              @RequestParam(value = "attachmentFile", required = false) MultipartFile attachmentFile,
                              @RequestParam(value = "solutionDueDate", required = false) String solutionDueDateStr) {
-        // Associate the lesson with the given class
         lesson.setSchoolClassId(classId);
 
-        // Handle file attachment if provided
         if (attachmentFile != null && !attachmentFile.isEmpty()) {
             try {
                 lesson.setAttachment(attachmentFile.getBytes());
@@ -82,33 +85,25 @@ public class TeacherLessonsController {
         // Manually parse the due date if provided
         if (solutionDueDateStr != null && !solutionDueDateStr.trim().isEmpty()) {
             try {
-                // For input type "datetime-local", the value is typically in ISO_LOCAL_DATE_TIME format.
-                // Adjust the parsing if you're using a different format.
                 LocalDate date = LocalDate.parse(solutionDueDateStr);
                 lesson.setSolutionDueDate(date.atStartOfDay());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            // If no due date is provided, you may decide to leave it as null or set a default.
             lesson.setSolutionDueDate(null);
         }
-
-        // Ensure the solutionRequired flag is not null.
         if (lesson.getSolutionRequired() == null) {
             lesson.setSolutionRequired(false);
         }
 
-        // Save the lesson first to obtain its generated id.
         lesson = lessonRepository.save(lesson);
 
-        // If a solution is required, create a LessonTask.
         if (Boolean.TRUE.equals(lesson.getSolutionRequired())) {
             LessonTask task = new LessonTask();
             task.setLessonId(lesson.getId());
             task.setTitle("Task for " + lesson.getTitle());
             task.setDescription("Solution is required for this lesson.");
-            // Use lesson's due date if provided; otherwise, set a default (for example, one week from now).
             if (lesson.getSolutionDueDate() != null) {
                 task.setDueDate(lesson.getSolutionDueDate());
             } else {
@@ -151,12 +146,9 @@ public class TeacherLessonsController {
             // Manually parse the date if provided
             if (solutionDueDateStr != null && !solutionDueDateStr.trim().isEmpty()) {
                 try {
-                    // For input type "date", the string is in the format "yyyy-MM-dd"
                     LocalDate date = LocalDate.parse(solutionDueDateStr);
-                    // Convert to LocalDateTime (e.g., at start of day)
                     lesson.setSolutionDueDate(date.atStartOfDay());
                 } catch (Exception e) {
-                    // Handle parse error (log or set a default)
                     e.printStackTrace();
                 }
             } else {

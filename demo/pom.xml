@@ -124,6 +124,11 @@
 			<version>3.5.2</version>
 
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -138,6 +143,15 @@
 				<version>3.5.2</version>
 				<configuration>
 					<testFailureIgnore>true</testFailureIgnore>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.11.0</version>
+				<configuration>
+					<release>22</release>
 				</configuration>
 			</plugin>
 		</plugins>

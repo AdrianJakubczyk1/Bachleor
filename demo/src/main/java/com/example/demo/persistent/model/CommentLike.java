@@ -9,13 +9,10 @@ public class CommentLike {
     @Id
     private Long id;
 
-    // The ID of the comment being liked
     private Long commentId;
 
-    // The username of the user who liked the comment
     private String username;
 
-    // Getters and setters
     public Long getId() {
         return id;
     }

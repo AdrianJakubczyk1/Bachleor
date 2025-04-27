@@ -20,6 +20,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.session.jdbc.config.annotation.SpringSessionTransactionManager;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -37,7 +38,6 @@ public class TempDataSourceConfig {
     }
 
     @Bean(name = "tempDataSource")
-    // @Primary // Remove this unless absolutely needed AND you understand the implications
     public DataSource tempDataSource() {
         return tempDataSourceProperties().initializeDataSourceBuilder().build();
     }
@@ -55,7 +55,7 @@ public class TempDataSourceConfig {
     }
 
     @Bean(name = "tempTransactionManager")
-    @SpringSessionTransactionManager // Keep this if using Spring Session with this DB
+    @SpringSessionTransactionManager
     public PlatformTransactionManager tempTransactionManager(
             @Qualifier("tempDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);

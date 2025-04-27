@@ -23,27 +23,23 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navDropdownMenuLink">
                             <li><a class="dropdown-item" href="/">Home</a></li>
+                            <li><a class="dropdown-item" href="/posts">Posts</a></li>
                             <li><a class="dropdown-item" href="/classes">Classes</a></li>
-                            <!-- Teacher Panel: uses the isTeacher flag -->
                             <li th:if="${isTeacher}">
                                 <a class="dropdown-item" href="/teacher">Teacher Panel</a>
                             </li>
-                            <!-- Admin Panel: uses the isAdmin flag -->
                             <li th:if="${isAdmin}">
                                 <a class="dropdown-item" href="/admin">Admin Panel</a>
                             </li>
-                            <!-- User Panel: visible if user is logged in -->
                             <li th:if="${loggedIn}">
                                 <a class="dropdown-item" href="/user/panel">User Panel</a>
                             </li>
-                            <!-- Logout: visible when logged in; implemented as a form -->
                             <li th:if="${loggedIn}">
                                 <form th:action="@{/logout}" method="post" style="display:inline;">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="dropdown-item">Logout</button>
                                 </form>
                             </li>
-                            <!-- For anonymous users: modal triggers for login and register -->
                             <li th:if="${!loggedIn}">
                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                             </li>
@@ -52,7 +48,6 @@
                             </li>
                         </ul>
                     </li>
-                    <!-- Dark Mode Toggle -->
                     <li class="nav-item d-flex align-items-center ms-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="themeSwitch">
@@ -67,33 +62,33 @@
 
 <!-- Login Modal -->
 <div th:fragment="login">
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="/perform_login" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <div class="mb-3">
-                        <label for="loginUsername" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="loginUsername" name="username" required>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-light">
+                <form action="/perform_login" method="post">
+                    <div class="modal-header border-light">
+                        <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="mb-3">
-                        <label for="loginPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="loginPassword" name="password" required>
+                    <div class="modal-body">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <div class="mb-3">
+                            <label for="loginUsername" class="form-label text-white">Username</label>
+                            <input type="text" class="form-control bg-secondary text-white border-light" id="loginUsername" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label text-white">Password</label>
+                            <input type="password" class="form-control bg-secondary text-white border-light" id="loginPassword" name="password" required>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Login</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+                    <div class="modal-footer border-light">
+                        <button type="submit" class="btn btn-outline-light">Login</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 

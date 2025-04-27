@@ -17,6 +17,7 @@ com\example\demo\GlobalModelAttributes.class
 com\example\demo\config\H2CacheCleaner.class
 com\example\demo\config\SecurityConfig.class
 com\example\demo\UserValidationController.class
+com\example\demo\ExpectionHandler.class
 com\example\demo\TeacherClassController.class
 com\example\demo\TeacherTaskOverviewController.class
 com\example\demo\persistent\repository\LessonRepository.class
@@ -45,6 +46,7 @@ com\example\demo\temp\model\AppStatistic.class
 com\example\demo\TeacherPostController.class
 com\example\demo\temp\repository\TempDataRepository.class
 com\example\demo\config\TempDataSourceConfig.class
+com\example\demo\test.class
 com\example\demo\temp\repository\StatsDaoImplRepository.class
 com\example\demo\persistent\repository\CommentLikeRepository.class
 com\example\demo\SolutionSubmissionController.class

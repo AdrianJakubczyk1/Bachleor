@@ -17,7 +17,9 @@ public class Post {
     private String attachmentContentType;
     private String author;
     private int viewCount;
-
+    private byte[] thumbnail;
+    private String thumbnailFilename;
+    private String thumbnailContentType;
     private Double avgRating;
 
     public Double getAvgRating() {
@@ -75,4 +77,13 @@ public class Post {
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
     }
+
+    public byte[] getThumbnail() { return thumbnail; }
+    public void setThumbnail(byte[] thumbnail) { this.thumbnail = thumbnail; }
+
+    public String getThumbnailFilename() { return thumbnailFilename; }
+    public void setThumbnailFilename(String thumbnailFilename) { this.thumbnailFilename = thumbnailFilename; }
+
+    public String getThumbnailContentType() { return thumbnailContentType; }
+    public void setThumbnailContentType(String thumbnailContentType) { this.thumbnailContentType = thumbnailContentType; }
 }

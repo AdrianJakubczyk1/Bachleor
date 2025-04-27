@@ -16,6 +16,8 @@ public interface ClassSignUpRepository extends CrudRepository<ClassSignUp, Long>
 
     Optional<ClassSignUp> findBySchoolClassIdAndUserId(Long schoolClassId, Long userId);
 
-    // Retrieve all sign-ups with status "PENDING"
+
     List<ClassSignUp> findByStatus(String status);
+
+    long countBySchoolClassIdAndUserId(Long schoolClassId, Long userId);
 }

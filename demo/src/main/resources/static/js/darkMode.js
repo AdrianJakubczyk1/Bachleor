@@ -1,22 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const themeSwitch = document.getElementById('themeSwitch');
-    // Check if the user preferred theme was stored
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (themeSwitch) {
-            themeSwitch.checked = true;
-        }
-    }
+  const themeSwitch = document.getElementById("themeSwitch");
+  const htmlEl = document.documentElement;
+  const saved = localStorage.getItem("theme") || "light";
+  htmlEl.setAttribute("data-bs-theme", saved);
+  if (themeSwitch) themeSwitch.checked = saved === "dark";
 
-    if (themeSwitch) {
-        themeSwitch.addEventListener('change', function () {
-            if (this.checked) {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('theme', 'light');
-            }
-        });
-    }
+  themeSwitch?.addEventListener("change", function () {
+    const theme = this.checked ? "dark" : "light";
+    htmlEl.setAttribute("data-bs-theme", theme);
+    localStorage.setItem("theme", theme);
+  });
 });

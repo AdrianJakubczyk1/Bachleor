@@ -13,15 +13,9 @@ public class SchoolClass {
     private String content;   // General class content
     private Boolean autoApprove;
 
-    // New field: teacher ID (the teacher assigned to this class)
     private Long teacherId;
     private LocalDateTime signupDeadline;
 
-    // Transient field for lessons if needed
-    // @Transient
-    // private List<Lesson> lessons;
-
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

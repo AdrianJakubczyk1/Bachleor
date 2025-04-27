@@ -5,13 +5,14 @@ import com.example.demo.persistent.repository.*;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,9 +37,48 @@ public class PostController {
     @Autowired
     private UserRepository userRepository;
 
-    // Display the full post along with its comments and like info
+
+    @GetMapping("/posts")
+    public String listPosts(
+            @RequestParam(value="q", required=false) String q,
+            @RequestParam(value="page", defaultValue="0") int page,
+            Model model) {
+
+        List<Post> all = StreamSupport
+                .stream(postRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
+
+        if (StringUtils.hasText(q)) {
+            String lc = q.toLowerCase();
+            all = all.stream()
+                    .filter(p -> p.getTitle().toLowerCase().contains(lc))
+                    .collect(Collectors.toList());
+        }
+
+        int pageSize = 6;
+        int total = all.size();
+        int totalPages = (total > 0)
+                ? (int) Math.ceil((double) total / pageSize)
+                : 1;
+
+        if (page < 0) page = 0;
+        if (page >= totalPages) page = totalPages - 1;
+
+        int from = page * pageSize;
+        int to   = Math.min(from + pageSize, total);
+        List<Post> pageItems = from < to
+                ? all.subList(from, to)
+                : Collections.emptyList();
+
+        model.addAttribute("posts", pageItems);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("searchTerm", q);
+        return "post";
+    }
     @GetMapping("/posts/{id}")
     public String postDetail(@PathVariable Long id, Model model, Principal principal) {
+
         Optional<Post> postOpt = postRepository.findById(id);
         if (postOpt.isPresent()) {
             Post post = postOpt.get();
@@ -63,7 +103,6 @@ public class PostController {
             List<Comment> comments = commentRepository.findByPostId(id);
             model.addAttribute("comments", comments);
 
-            // Prepare like counts and flag if current user liked a comment
             Map<Long, Integer> commentLikeCounts = new HashMap<>();
             Map<Long, Boolean> commentUserLiked = new HashMap<>();
 
@@ -81,7 +120,7 @@ public class PostController {
                 }
             }
             else {
-                // For anonymous users, like counts are still shown but no user-specific flag
+
                 for (Comment comment : comments) {
                     int count = commentLikeRepository.countByCommentId(comment.getId());
                     commentLikeCounts.put(comment.getId(), count);
