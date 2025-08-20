@@ -1,24 +1,35 @@
 package com.example.demo.persistent.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import java.util.Objects;
 
-@Table("lesson_ratings")
-public class LessonRating {
+public class LessonRating implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @Id
     private Long id;
-
     private Long lessonId;
-    private Long userId; // Alternatively, store username as String.
-
-    // For example, rating scale 1-5.
+    private Long userId;
     private int rating;
-
     private LocalDateTime createdDate;
 
-    // Getters and setters...
+    // No‑args ctor for Hazelcast serialization
+    public LessonRating() {}
+
+    // Full‑args ctor
+    public LessonRating(Long id,
+                        Long lessonId,
+                        Long userId,
+                        int rating,
+                        LocalDateTime createdDate) {
+        this.id = id;
+        this.lessonId = lessonId;
+        this.userId = userId;
+        this.rating = rating;
+        this.createdDate = createdDate;
+    }
+
+    // Getters & setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -33,4 +44,32 @@ public class LessonRating {
 
     public LocalDateTime getCreatedDate() { return createdDate; }
     public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LessonRating)) return false;
+        LessonRating that = (LessonRating) o;
+        return rating == that.rating &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(lessonId, that.lessonId) &&
+                Objects.equals(userId, that.userId) &&
+                Objects.equals(createdDate, that.createdDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, lessonId, userId, rating, createdDate);
+    }
+
+    @Override
+    public String toString() {
+        return "LessonRating{" +
+                "id=" + id +
+                ", lessonId=" + lessonId +
+                ", userId=" + userId +
+                ", rating=" + rating +
+                ", createdDate=" + createdDate +
+                '}';
+    }
 }

@@ -75,7 +75,7 @@ class TeacherAvailableClassesControllerUnitTest {
         teacher.setUsername("teacherY");
 
         when(userRepository.findByUsername("teacherY")).thenReturn(teacher);
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.empty());
+        when(schoolClassRepository.findById(classId)).thenReturn(null);
 
         String view = controller.assignSelfToClass(classId, principal);
 
@@ -99,7 +99,7 @@ class TeacherAvailableClassesControllerUnitTest {
         schoolClass.setTeacherId(null);
 
         when(userRepository.findByUsername("teacherZ")).thenReturn(teacher);
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.of(schoolClass));
+        when(schoolClassRepository.findById(classId)).thenReturn(schoolClass);
 
         String view = controller.assignSelfToClass(classId, principal);
         assertEquals(202L, schoolClass.getTeacherId());

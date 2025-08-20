@@ -1,8 +1,8 @@
 package com.example.demo.unit.controllers;
 
 import com.example.demo.AdminDashboardController;
-import com.example.demo.temp.model.AppStatistic;
-import com.example.demo.temp.repository.StatsDaoImplRepository;
+import com.example.demo.persistent.model.AppStatistic;
+import com.example.demo.persistent.repository.AppStatisticRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class AdminDashboardControllerUnitTest {
 
     @Mock
-    private StatsDaoImplRepository statsDao;
+    private AppStatisticRepository statsDao;
 
     @Mock
     private Model model;
@@ -48,7 +48,7 @@ class AdminDashboardControllerUnitTest {
         List<AppStatistic> stats = Arrays.asList(stat1, stat2);
 
         // When statsDao.findAllStats() is called, return our test data.
-        when(statsDao.findAllStats()).thenReturn(stats);
+        when(statsDao.findAll()).thenReturn(stats);
 
         // Act: call the adminDashboard method.
         String viewName = controller.adminDashboard(model);

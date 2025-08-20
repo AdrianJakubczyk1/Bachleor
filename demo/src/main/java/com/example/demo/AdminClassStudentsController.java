@@ -30,19 +30,17 @@ public class AdminClassStudentsController {
 
     @GetMapping
     public String viewClassStudents(@PathVariable Long classId, Model model) {
-        Optional<SchoolClass> classOpt = schoolClassRepository.findById(classId);
-        if (!classOpt.isPresent()) {
+        // findById now returns SchoolClass or null
+        SchoolClass schoolClass = schoolClassRepository.findById(classId);
+        if (schoolClass == null) {
             return "redirect:/admin/classes?error=classNotFound";
         }
-        SchoolClass schoolClass = classOpt.get();
 
-        List<ClassSignUp> signUps = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
+        List<ClassSignUp> signUps = classSignUpRepository.findBySchoolClassId(classId);
         List<ClassSignUpDetail> signUpDetails = new ArrayList<>();
 
         for (ClassSignUp signUp : signUps) {
-            Optional<User> userOpt = userRepository.findById(signUp.getUserId());
-            if (userOpt.isPresent()) {
-                User student = userOpt.get();
+            userRepository.findById(signUp.getUserId()).ifPresent(student -> {
                 ClassSignUpDetail detail = new ClassSignUpDetail();
                 detail.setSignUpId(signUp.getId());
                 detail.setStudentId(student.getId());
@@ -51,28 +49,11 @@ public class AdminClassStudentsController {
                 detail.setStatus(signUp.getStatus());
                 detail.setCreatedDate(signUp.getCreatedDate());
                 signUpDetails.add(detail);
-            }
+            });
         }
 
         model.addAttribute("schoolClass", schoolClass);
         model.addAttribute("signUpDetails", signUpDetails);
-
-        List<User> allStudents = new ArrayList<>();
-        userRepository.findAll().forEach(u -> {
-            if ("USER".equalsIgnoreCase(u.getRole())) {
-                allStudents.add(u);
-            }
-        });
-        // Filter out users already enrolled.
-        List<User> availableStudents = new ArrayList<>();
-        for (User student : allStudents) {
-            boolean alreadyEnrolled = signUps.stream().anyMatch(s -> s.getUserId().equals(student.getId()));
-            if (!alreadyEnrolled) {
-                availableStudents.add(student);
-            }
-        }
-        model.addAttribute("availableStudents", availableStudents);
-
         return "adminClassStudents";
     }
 
@@ -81,7 +62,7 @@ public class AdminClassStudentsController {
      */
     @PostMapping("/{signUpId}/remove")
     public String removeStudent(@PathVariable Long classId, @PathVariable Long signUpId) {
-        classSignUpRepository.deleteById(signUpId);
+        classSignUpRepository.delete(signUpId);
         return "redirect:/admin/classes/" + classId + "/students";
     }
 

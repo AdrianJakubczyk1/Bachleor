@@ -47,40 +47,35 @@ public class ClassesController {
 
     @GetMapping("/classes/{id}")
     public String classDetail(@PathVariable Long id, Model model, Principal principal) {
-        Optional<SchoolClass> classOpt = schoolClassRepository.findById(id);
-        if (classOpt.isPresent()) {
-            SchoolClass schoolClass = classOpt.get();
-            model.addAttribute("schoolClass", schoolClass);
-
-            boolean loggedIn = (principal != null);
-            model.addAttribute("loggedIn", loggedIn);
-
-            if (loggedIn) {
-
-                model.addAttribute("username", principal.getName());
-
-                User user = userRepository.findByUsername(principal.getName());
-                Long userId = user.getId();
-                Optional<ClassSignUp> signupOpt = classSignUpRepository.findBySchoolClassIdAndUserId(id, userId);
-                if (signupOpt.isPresent()) {
-                    model.addAttribute("signup", signupOpt.get());
-                }
-            }
-
-            if (schoolClass == null) {
-                return "redirect:/classes";
-            }
-            model.addAttribute("schoolClass", schoolClass);
-
-            List<Lesson> lessons = StreamSupport
-                    .stream(lessonRepository.findBySchoolClassId(id).spliterator(), false)
-                    .collect(Collectors.toList());
-            model.addAttribute("lessons", lessons);
-
-
-            return "classDetail";
+        // findById now returns SchoolClass or null
+        SchoolClass schoolClass = schoolClassRepository.findById(id);
+        if (schoolClass == null) {
+            return "redirect:/classes";
         }
-        return "redirect:/classes";
+        model.addAttribute("schoolClass", schoolClass);
+
+        boolean loggedIn = (principal != null);
+        model.addAttribute("loggedIn", loggedIn);
+
+        if (loggedIn) {
+            String username = principal.getName();
+            model.addAttribute("username", username);
+
+            User user = userRepository.findByUsername(username);
+            if (user != null) {
+                Optional<ClassSignUp> signupOpt =
+                        classSignUpRepository.findBySchoolClassIdAndUserId(id, user.getId());
+                signupOpt.ifPresent(signup -> model.addAttribute("signup", signup));
+            }
+        }
+
+        // Convert your Collection<Lesson> to a List for the template
+        List<Lesson> lessons = lessonRepository.findBySchoolClassId(id)
+                .stream()
+                .collect(Collectors.toList());
+        model.addAttribute("lessons", lessons);
+
+        return "classDetail";
     }
 
     @PostMapping("/classes/{id}/signup")
@@ -94,13 +89,16 @@ public class ClassesController {
             return "redirect:/login?error=userNotFound";
         }
         Long userId = user.getId();
-        Optional<ClassSignUp> existing = classSignUpRepository.findBySchoolClassIdAndUserId(id, userId);
+
+        Optional<ClassSignUp> existing =
+                classSignUpRepository.findBySchoolClassIdAndUserId(id, userId);
         if (existing.isEmpty()) {
             ClassSignUp signup = new ClassSignUp();
             signup.setSchoolClassId(id);
             signup.setUserId(userId);
 
-            SchoolClass schoolClass = schoolClassRepository.findById(id).orElse(null);
+            // findById now returns SchoolClass or null
+            SchoolClass schoolClass = schoolClassRepository.findById(id);
             if (schoolClass != null && Boolean.TRUE.equals(schoolClass.getAutoApprove())) {
                 signup.setStatus("APPROVED");
             } else {
@@ -129,25 +127,26 @@ public class ClassesController {
 
     @GetMapping("/classes/{id}/lessons")
     public String viewLessons(@PathVariable Long id, Model model, Principal principal) {
-        SchoolClass schoolClass = schoolClassRepository.findById(id).orElse(null);
+        // findById now returns SchoolClass or null
+        SchoolClass schoolClass = schoolClassRepository.findById(id);
         if (schoolClass == null) {
             return "redirect:/classes?error=classNotFound";
         }
         model.addAttribute("schoolClass", schoolClass);
 
-        // Retrieve lessons for the class (assumes a repository method exists)
+        // Retrieve lessons for the class
         List<Lesson> lessons = lessonRepository.findBySchoolClassId(id);
         model.addAttribute("lessons", lessons);
+
         Map<Long, Long> lessonTaskMapping = new HashMap<>();
         for (Lesson lesson : lessons) {
-            Optional<LessonTask> taskOpt = lessonTaskRepository.findByLessonId(lesson.getId())
-                    .stream()
-                    .findFirst();
-            if (taskOpt.isPresent()){
-                lessonTaskMapping.put(lesson.getId(), taskOpt.get().getId());
+            List<LessonTask> tasks = lessonTaskRepository.findByLessonId(lesson.getId());
+            if (!tasks.isEmpty()) {
+                lessonTaskMapping.put(lesson.getId(), tasks.get(0).getId());
             }
         }
         model.addAttribute("lessonTaskMapping", lessonTaskMapping);
+
         return "classLessonsUser";
     }
 }

@@ -27,12 +27,11 @@ public class SignUpDeadlineProcessor {
         LocalDateTime now = LocalDateTime.now();
         for (ClassSignUp signUp : pendingSignUps) {
             // Retrieve the associated SchoolClass by ID
-            Optional<SchoolClass> classOpt = schoolClassRepository.findById(signUp.getSchoolClassId());
-            if (classOpt.isPresent()) {
-                SchoolClass schoolClass = classOpt.get();
-                // Check if signupDeadline is set and if the current time is after the deadline
-                if (schoolClass.getSignupDeadline() != null && now.isAfter(schoolClass.getSignupDeadline())) {
-                    // Automatically reject the pending sign-up
+            SchoolClass schoolClass = schoolClassRepository.findById(signUp.getSchoolClassId());
+            if (schoolClass != null) {
+                // Check deadline…
+                if (schoolClass.getSignupDeadline() != null
+                        && now.isAfter(schoolClass.getSignupDeadline())) {
                     signUp.setStatus("REJECTED");
                     classSignUpRepository.save(signUp);
                 }

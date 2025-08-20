@@ -8,10 +8,8 @@ import com.example.demo.persistent.repository.SchoolClassRepository;
 import com.example.demo.persistent.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,21 +38,21 @@ public class AdminUserController {
     public String listUsers(Model model) {
         List<User> users = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
-        Map<Long, String> userClassesMap = new HashMap<>();
+        Map<Long,String> userClassesMap = new HashMap<>();
 
         for (User user : users) {
             List<ClassSignUp> signups = classSignUpRepository.findByUserId(user.getId());
             String classNames = signups.stream()
-                    .map(signup -> schoolClassRepository.findById(signup.getSchoolClassId()))
-                    .filter(Optional::isPresent)
-                    .map(opt -> opt.get().getName())
+                    .map(cs -> schoolClassRepository.findById(cs.getSchoolClassId()))
+                    .filter(Objects::nonNull)
+                    .map(SchoolClass::getName)
                     .collect(Collectors.joining(", "));
             userClassesMap.put(user.getId(), classNames);
         }
 
         model.addAttribute("users", users);
         model.addAttribute("userClassesMap", userClassesMap);
-        return "adminUsers"; // This corresponds to adminUsers.html
+        return "adminUsers";
     }
 
     @GetMapping("/new")
@@ -136,7 +134,7 @@ public class AdminUserController {
         List<ClassSignUp> existingSignups = classSignUpRepository.findByUserId(id);
         for (ClassSignUp cs : existingSignups) {
             if (classIds == null || !classIds.contains(cs.getSchoolClassId())) {
-                classSignUpRepository.delete(cs);
+                classSignUpRepository.delete(cs.getId());
             }
         }
         if (classIds != null) {
@@ -157,7 +155,7 @@ public class AdminUserController {
 
     @PostMapping("/{id}/delete")
     public String deleteUser(@PathVariable Long id) {
-        userRepository.deleteById(id);
+        userRepository.delete(id);
         return "redirect:/admin/users";
     }
 }

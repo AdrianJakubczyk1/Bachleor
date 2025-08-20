@@ -59,7 +59,7 @@ class PostControllerUnitTest {
         Post post = new Post();
         post.setId(postId);
         post.setViewCount(10);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
         Principal principal = () -> "testUser";
         User user = new User();
         user.setId(100L);
@@ -114,7 +114,7 @@ class PostControllerUnitTest {
         Post post = new Post();
         post.setId(postId);
         post.setViewCount(20);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
 
         Principal principal = null;
         Comment comment = new Comment();
@@ -149,7 +149,7 @@ class PostControllerUnitTest {
     @Test
     void testPostDetail_PostNotFound() {
         Long postId = 999L;
-        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+        when(postRepository.findById(postId)).thenReturn(null);
 
         String view = controller.postDetail(postId, model, () -> "anyUser");
         assertEquals("redirect:/", view);
@@ -198,7 +198,7 @@ class PostControllerUnitTest {
         Comment comment = new Comment();
         comment.setId(commentId);
         comment.setPostId(5L);
-        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.findById(commentId)).thenReturn(comment);
 
         String view = controller.likeComment(commentId, principal);
         ArgumentCaptor<CommentLike> captor = ArgumentCaptor.forClass(CommentLike.class);
@@ -213,7 +213,7 @@ class PostControllerUnitTest {
     void testLikeComment_CommentNotFound() {
         Long commentId = 30L;
         Principal principal = () -> "user";
-        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+        when(commentRepository.findById(commentId)).thenReturn(null);
         String view = controller.likeComment(commentId, principal);
         assertEquals("redirect:/", view);
     }

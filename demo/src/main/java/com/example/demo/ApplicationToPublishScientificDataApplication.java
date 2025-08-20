@@ -40,4 +40,4 @@ public class ApplicationToPublishScientificDataApplication {
 			}
 		};
 	}
-}
+}//naprawic wyswietlanie obrazkow, statystyki w admin panel

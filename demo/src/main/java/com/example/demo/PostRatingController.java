@@ -56,9 +56,9 @@ public class PostRatingController {
         List<PostRating> ratingsForPost = postRatingRepository.findByPostId(postId);
         double avg = ratingsForPost.stream()
                 .collect(Collectors.averagingInt(PostRating::getRating));
-        Optional<Post> optPost = postRepository.findById(postId);
-        if (optPost.isPresent()) {
-            Post post = optPost.get();
+
+        Post post = postRepository.findById(postId);
+        if (post != null) {
             post.setAvgRating(avg);
             postRepository.save(post);
         }

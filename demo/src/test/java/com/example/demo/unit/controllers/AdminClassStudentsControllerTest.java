@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class AdminClassStudentsControllerUnitTest {
+class AdminClassStudentsControllerTest {
 
     @Mock
     private SchoolClassRepository schoolClassRepository;
@@ -72,28 +72,35 @@ class AdminClassStudentsControllerUnitTest {
         availableStudent.setLastName("Smith");
         availableStudent.setRole("USER");
 
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.of(schoolClass));
-        when(classSignUpRepository.findBySchoolClassId(classId)).thenReturn(List.of(signup));
-        when(userRepository.findById(100L)).thenReturn(Optional.of(student));
-        when(userRepository.findAll()).thenReturn(Arrays.asList(student, availableStudent));
+        // Stub raw returns (no Optional)
+        when(schoolClassRepository.findById(classId))
+                .thenReturn(schoolClass);
+        when(classSignUpRepository.findBySchoolClassId(classId))
+                .thenReturn(List.of(signup));
+        when(userRepository.findById(100L))
+                .thenReturn(Optional.of(student));
+        when(userRepository.findAll())
+                .thenReturn(Arrays.asList(student, availableStudent));
 
         String viewName = controller.viewClassStudents(classId, model);
 
         assertEquals("adminClassStudents", viewName);
-
-        verify(model).addAttribute(eq("schoolClass"), eq(schoolClass));
+        verify(model).addAttribute("schoolClass", schoolClass);
         verify(model).addAttribute(eq("signUpDetails"), any(List.class));
-        verify(model).addAttribute(eq("availableStudents"), any(List.class));
     }
 
     @Test
     void testViewClassStudents_ClassNotFound() {
         Long classId = 999L;
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.empty());
+        // Stub to return null when not found
+        when(schoolClassRepository.findById(classId))
+                .thenReturn(null);
 
         String viewName = controller.viewClassStudents(classId, model);
 
         assertEquals("redirect:/admin/classes?error=classNotFound", viewName);
+        verify(model, never()).addAttribute(eq("schoolClass"), any());
+        verify(model, never()).addAttribute(eq("signUpDetails"), any());
     }
 
     @Test
@@ -103,7 +110,7 @@ class AdminClassStudentsControllerUnitTest {
 
         String viewName = controller.removeStudent(classId, signUpId);
 
-        verify(classSignUpRepository, times(1)).deleteById(signUpId);
+        verify(classSignUpRepository, times(1)).delete(signUpId);
         assertEquals("redirect:/admin/classes/1/students", viewName);
     }
 

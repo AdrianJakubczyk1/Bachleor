@@ -34,7 +34,7 @@ class FileDownloadControllerUnitTest {
     @Test
     void testDownloadAttachment_PostNotFound() {
         Long postId = 1L;
-        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+        when(postRepository.findById(postId)).thenReturn(null);
 
         ResponseEntity<byte[]> response = controller.downloadAttachment(postId);
 
@@ -49,7 +49,7 @@ class FileDownloadControllerUnitTest {
         Post post = new Post();
         // Simulate that no attachment is available.
         post.setAttachment(null);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
 
         ResponseEntity<byte[]> response = controller.downloadAttachment(postId);
 
@@ -70,7 +70,7 @@ class FileDownloadControllerUnitTest {
         post.setAttachmentContentType(contentType);
         post.setAttachmentFilename(filename);
 
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
 
         ResponseEntity<byte[]> response = controller.downloadAttachment(postId);
 

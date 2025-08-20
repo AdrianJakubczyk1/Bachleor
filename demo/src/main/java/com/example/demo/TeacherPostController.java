@@ -31,14 +31,14 @@ public class TeacherPostController {
 
         List<Post> posts = postRepository.findByAuthor(username);
         model.addAttribute("posts", posts);
-        return "teacherPosts"; // Resolves to teacherPosts.html template
+        return "teacherPosts";
     }
 
     // Show form to add a new post
     @GetMapping("/new")
     public String showAddPostForm(Model model) {
         model.addAttribute("post", new Post());
-        return "teacherPostForm"; // teacherPostForm.html
+        return "teacherPostForm";
     }
 
     @PostMapping("/new")
@@ -49,7 +49,8 @@ public class TeacherPostController {
     }
     @GetMapping("/{id}/edit")
     public String showEditPostForm(@PathVariable Long id, Model model, Principal principal) {
-        Post post = postRepository.findById(id).orElse(null);
+        // findById now returns Post or null
+        Post post = postRepository.findById(id);
         if (post == null || !post.getAuthor().equals(principal.getName())) {
             return "redirect:/teacher/posts";
         }

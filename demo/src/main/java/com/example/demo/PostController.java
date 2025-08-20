@@ -78,61 +78,57 @@ public class PostController {
     }
     @GetMapping("/posts/{id}")
     public String postDetail(@PathVariable Long id, Model model, Principal principal) {
-
-        Optional<Post> postOpt = postRepository.findById(id);
-        if (postOpt.isPresent()) {
-            Post post = postOpt.get();
-
-            post.setViewCount(post.getViewCount() + 1);
-
-            boolean alreadyRated = false;
-            if (principal != null) {
-                String username = principal.getName();
-                Optional<User> optUser = Optional.ofNullable(userRepository.findByUsername(username));
-                if (optUser.isPresent()) {
-                    Long userId = optUser.get().getId();
-                    Optional<PostRating> existingRating = postRatingRepository.findByPostIdAndUserId(post.getId(), userId);
-                    alreadyRated = existingRating.isPresent();
-                    model.addAttribute("alreadyRated", alreadyRated);
-                }
-            }
-            postRepository.save(post);
-
-            model.addAttribute("post", post);
-
-            List<Comment> comments = commentRepository.findByPostId(id);
-            model.addAttribute("comments", comments);
-
-            Map<Long, Integer> commentLikeCounts = new HashMap<>();
-            Map<Long, Boolean> commentUserLiked = new HashMap<>();
-
-            boolean loggedIn = (principal != null);
-            model.addAttribute("loggedIn", loggedIn);
-            if (loggedIn) {
-                String username = principal.getName();
-                model.addAttribute("username", username);
-                for (Comment comment : comments) {
-                    int count = commentLikeRepository.countByCommentId(comment.getId());
-                    commentLikeCounts.put(comment.getId(), count);
-
-                    boolean userLiked = commentLikeRepository.findByCommentIdAndUsername(comment.getId(), username).isPresent();
-                    commentUserLiked.put(comment.getId(), userLiked);
-                }
-            }
-            else {
-
-                for (Comment comment : comments) {
-                    int count = commentLikeRepository.countByCommentId(comment.getId());
-                    commentLikeCounts.put(comment.getId(), count);
-                    commentUserLiked.put(comment.getId(), false);
-                }
-            }
-            model.addAttribute("commentLikeCounts", commentLikeCounts);
-            model.addAttribute("commentUserLiked", commentUserLiked);
-
-            return "postDetail"; // Corresponds to postDetail.html
+        // findById now returns Post or null
+        Post post = postRepository.findById(id);
+        if (post == null) {
+            return "redirect:/";
         }
-        return "redirect:/";
+
+        // bump view count
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
+
+        model.addAttribute("post", post);
+
+        // find comments
+        List<Comment> comments = commentRepository.findByPostId(id);
+        model.addAttribute("comments", comments);
+
+        // prepare like counts and whether current user liked
+        Map<Long,Integer> commentLikeCounts = new HashMap<>();
+        Map<Long,Boolean> commentUserLiked  = new HashMap<>();
+
+        boolean loggedIn = (principal != null);
+        model.addAttribute("loggedIn", loggedIn);
+        String username = (loggedIn ? principal.getName() : null);
+        model.addAttribute("username", username);
+
+        for (Comment comment : comments) {
+            int count = commentLikeRepository.countByCommentId(comment.getId());
+            commentLikeCounts.put(comment.getId(), count);
+
+            boolean userLiked = loggedIn
+                    && commentLikeRepository.findByCommentIdAndUsername(comment.getId(), username)
+                    .isPresent();
+            commentUserLiked.put(comment.getId(), userLiked);
+        }
+
+        model.addAttribute("commentLikeCounts", commentLikeCounts);
+        model.addAttribute("commentUserLiked",  commentUserLiked);
+
+        // rating logic
+        boolean alreadyRated = false;
+        if (loggedIn) {
+            User u = userRepository.findByUsername(username);
+            if (u != null) {
+                alreadyRated = postRatingRepository
+                        .findByPostIdAndUserId(post.getId(), u.getId())
+                        .isPresent();
+            }
+        }
+        model.addAttribute("alreadyRated", alreadyRated);
+
+        return "postDetail";
     }
 
     // Handle submission of a new comment
@@ -153,7 +149,6 @@ public class PostController {
         return "redirect:/posts/" + id;
     }
 
-    // Process a like for a comment; limit one like per user per comment
     @GetMapping("/comments/{commentId}/like")
     public String likeComment(@PathVariable Long commentId, Principal principal) {
         if (principal == null) {
@@ -168,9 +163,9 @@ public class PostController {
             commentLikeRepository.save(cl);
         }
         // Retrieve the post id for redirection
-        Optional<Comment> commentOpt = commentRepository.findById(commentId);
-        if (commentOpt.isPresent()) {
-            Long postId = commentOpt.get().getPostId();
+        Comment comment = commentRepository.findById(commentId);
+        if (comment != null) {
+            Long postId = comment.getPostId();
             return "redirect:/posts/" + postId;
         }
         return "redirect:/";

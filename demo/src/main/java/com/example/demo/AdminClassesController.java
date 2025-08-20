@@ -10,8 +10,6 @@ import java.util.Optional;
 
 import com.example.demo.persistent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,21 +38,20 @@ public class AdminClassesController {
     @GetMapping
     public String listClasses(Model model) {
         model.addAttribute("classes", schoolClassRepository.findAll());
-        return "adminClasses"; // adminClasses.html
+        return "adminClasses";
     }
 
     @GetMapping("/{id}/assign")
     public String showAssignTeacherForm(@PathVariable Long id, Model model) {
-        Optional<SchoolClass> optClass = schoolClassRepository.findById(id);
-        if (optClass.isPresent()) {
-            SchoolClass schoolClass = optClass.get();
+        SchoolClass schoolClass = schoolClassRepository.findById(id);
+        if (schoolClass != null) {
             model.addAttribute("schoolClass", schoolClass);
             // List all teachers from the user repository (assume role equals "TEACHER")
-            List<User> teachers = (List<User>) userRepository.findAll(); // Filter later or add a custom method!
-            // For example, filter in Java:
-            teachers.removeIf(u -> !"TEACHER".equalsIgnoreCase(u.getRole()));
+            List<User> teachers = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+                    .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole()))
+                    .collect(Collectors.toList());
             model.addAttribute("teachers", teachers);
-            return "adminAssignTeacher";  // Corresponds to adminAssignTeacher.html
+            return "adminAssignTeacher";
         }
         return "redirect:/admin/classes";
     }
@@ -62,26 +59,18 @@ public class AdminClassesController {
     // Process the teacher assignment
     @PostMapping("/{id}/assign")
     public String assignTeacher(@PathVariable Long id, @RequestParam Long teacherId) {
-        Optional<SchoolClass> optClass = schoolClassRepository.findById(id);
-        if (optClass.isPresent()) {
-            SchoolClass schoolClass = optClass.get();
+        // findById now returns the entity or null
+        SchoolClass schoolClass = schoolClassRepository.findById(id);
+        if (schoolClass != null) {
             schoolClass.setTeacherId(teacherId);
             schoolClassRepository.save(schoolClass);
         }
         return "redirect:/admin/classes";
     }
 
-    // Show form to add a new class
     @GetMapping("/new")
-    public String showAddClassForm(@PathVariable(required=false) Long id,Model model) {
-        model.addAttribute("schoolClass", new SchoolClass());
-        SchoolClass schoolClass;
-        if (id != null) {
-            schoolClass = schoolClassRepository.findById(id).orElse(new SchoolClass());
-        } else {
-            schoolClass = new SchoolClass();
-        }
-
+    public String showAddClassForm(Model model) {
+        SchoolClass schoolClass = new SchoolClass();
         model.addAttribute("schoolClass", schoolClass);
 
         List<User> teachers = StreamSupport.stream(userRepository.findAll().spliterator(), false)
@@ -113,35 +102,34 @@ public class AdminClassesController {
     // Show form to edit a class
     @GetMapping("/{id}/edit")
     public String showEditClassForm(@PathVariable Long id, Model model) {
-        Optional<SchoolClass> opt = schoolClassRepository.findById(id);
-        if (opt.isPresent()) {
-            SchoolClass schoolClass;
-            if (id != null) {
-                schoolClass = schoolClassRepository.findById(id).orElse(new SchoolClass());
-            } else {
-                schoolClass = new SchoolClass();
-            }
-
+        // findById now returns SchoolClass or null
+        SchoolClass schoolClass = schoolClassRepository.findById(id);
+        if (schoolClass != null) {
             model.addAttribute("schoolClass", schoolClass);
 
-            // Retrieve all users from the repository and filter those with role "USER"
+            // Retrieve all users and filter those with role "USER"
             List<User> allStudents = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                     .filter(u -> "USER".equalsIgnoreCase(u.getRole()))
                     .collect(Collectors.toList());
+
+            // Get already enrolled student IDs
             List<ClassSignUp> enrollments = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
             Set<Long> enrolledStudentIds = enrollments.stream()
                     .map(ClassSignUp::getUserId)
                     .collect(Collectors.toSet());
+
+            // Exclude enrolled students
             List<User> availableStudents = allStudents.stream()
                     .filter(u -> !enrolledStudentIds.contains(u.getId()))
                     .collect(Collectors.toList());
             model.addAttribute("availableStudents", availableStudents);
 
+            // Retrieve all teachers
             List<User> teachers = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                     .filter(u -> "TEACHER".equalsIgnoreCase(u.getRole()))
                     .collect(Collectors.toList());
             model.addAttribute("teachers", teachers);
-            model.addAttribute("schoolClass", opt.get());
+
             return "adminClassForm";
         }
         return "redirect:/admin/classes";
@@ -184,7 +172,7 @@ public class AdminClassesController {
     // Delete class
     @PostMapping("/{id}/delete")
     public String deleteClass(@PathVariable Long id) {
-        schoolClassRepository.deleteById(id);
+        schoolClassRepository.delete(id);
         return "redirect:/admin/classes";
     }
 }

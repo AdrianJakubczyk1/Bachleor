@@ -63,7 +63,7 @@ class UserPanelControllerUnitTest {
         SchoolClass schoolClass = new SchoolClass();
         schoolClass.setId(10L);
         schoolClass.setName("Math");
-        when(schoolClassRepository.findById(10L)).thenReturn(Optional.of(schoolClass));
+        when(schoolClassRepository.findById(10L)).thenReturn(schoolClass);
 
         TaskSubmission submission = new TaskSubmission();
         submission.setId(200L);

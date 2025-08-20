@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  hazelcast1:
+    image: hazelcast/hazelcast:5.5.0 # Change this from 5.0 to 5.5.0
+    container_name: hazelcast1
+    volumes:
+      - ./hazelcast.xml:/opt/hazelcast/config/hazelcast.xml
+    ports:
+      - "5701:5701"
+
+  hazelcast2:
+    image: hazelcast/hazelcast:5.5.0 # Change this from 5.0 to 5.5.0
+    container_name: hazelcast2
+    volumes:
+      - ./hazelcast.xml:/opt/hazelcast/config/hazelcast.xml
+    ports:
+      - "5702:5701"
+
+  hazelcast3:
+    image: hazelcast/hazelcast:5.5.0 # Change this from 5.0 to 5.5.0
+    container_name: hazelcast3
+    volumes:
+      - ./hazelcast.xml:/opt/hazelcast/config/hazelcast.xml
+    ports:
+      - "5703:5701"

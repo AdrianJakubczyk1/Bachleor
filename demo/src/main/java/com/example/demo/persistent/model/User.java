@@ -1,38 +1,48 @@
 package com.example.demo.persistent.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import java.io.Serializable;
+import java.util.Objects;
 
-@Table("users")
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @Id
     private Long id;
-
     private String username;
     private String password;
     private String role;
-
-    // New fields for user profile
     private String firstName;
     private String lastName;
     private String studentClass;
     private String email;
 
-    // Getters and setters
+    // No-args constructor
+    public User() {}
 
+    // Full-args constructor
+    public User(Long id,
+                String username,
+                String password,
+                String role,
+                String firstName,
+                String lastName,
+                String studentClass,
+                String email) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.studentClass = studentClass;
+        this.email = email;
+    }
+
+    // Getters & setters
     public Long getId() {
         return id;
     }
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getUsername() {
@@ -75,5 +85,36 @@ public class User {
     }
     public void setStudentClass(String studentClass) {
         this.studentClass = studentClass;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+                Objects.equals(username, user.username) &&
+                Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, email);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

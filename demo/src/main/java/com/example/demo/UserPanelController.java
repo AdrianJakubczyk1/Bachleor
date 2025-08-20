@@ -41,15 +41,15 @@ public class UserPanelController {
             model.addAttribute("user", user);
 
             List<ClassSignUp> signups = classSignUpRepository.findByUserId(user.getId());
-
             System.out.println("Found " + signups.size() + " signups for user " + user.getId());
 
+            // findById now returns SchoolClass or null
             List<SchoolClass> userClasses = signups.stream()
-                    .map(signup -> schoolClassRepository.findById(signup.getSchoolClassId()))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(su -> schoolClassRepository.findById(su.getSchoolClassId()))
+                    .filter(sc -> sc != null)
                     .collect(Collectors.toList());
             model.addAttribute("userClasses", userClasses);
+
             List<TaskSubmission> submissions = taskSubmissionRepository.findByUserId(user.getId());
             model.addAttribute("submissions", submissions);
         }

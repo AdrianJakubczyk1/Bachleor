@@ -101,7 +101,7 @@ class AdminPostControllerUnitTest {
         Long postId = 1L;
         Post post = new Post();
         post.setTitle("Existing Post");
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
         String viewName = controller.editPost(postId, model);
 
         verify(model).addAttribute("post", post);
@@ -111,7 +111,8 @@ class AdminPostControllerUnitTest {
     @Test
     void testEditPostNotFound() {
         Long postId = 1L;
-        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+        // findById now returns the entity or null
+        when(postRepository.findById(postId)).thenReturn(null);
 
         String viewName = controller.editPost(postId, model);
         assertEquals("redirect:/admin/posts", viewName);
@@ -163,7 +164,7 @@ class AdminPostControllerUnitTest {
         Long postId = 1L;
         String redirect = controller.deletePost(postId);
 
-        verify(postRepository).deleteById(postId);
+        verify(postRepository).delete(postId);
         assertEquals("redirect:/admin/posts", redirect);
     }
 }

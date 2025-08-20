@@ -21,11 +21,11 @@ public class FileDownloadController {
 
     @GetMapping("/posts/{id}/attachment")
     public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long id) {
-        Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isEmpty() || optionalPost.get().getAttachment() == null) {
+        // findById now returns Post or null
+        Post post = postRepository.findById(id);
+        if (post == null || post.getAttachment() == null) {
             return ResponseEntity.notFound().build();
         }
-        Post post = optionalPost.get();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(post.getAttachmentContentType()));
         headers.setContentDisposition(ContentDisposition.builder("attachment")

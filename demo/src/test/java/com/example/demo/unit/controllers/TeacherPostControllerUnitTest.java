@@ -97,7 +97,7 @@ class TeacherPostControllerUnitTest {
         post.setId(postId);
         post.setAuthor(teacherName);
 
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
 
         String view = controller.showEditPostForm(postId, model, principal);
         verify(model).addAttribute("post", post);
@@ -108,7 +108,7 @@ class TeacherPostControllerUnitTest {
     void testShowEditPostForm_PostNotFound() {
         Long postId = 20L;
         Principal principal = () -> "teacherName";
-        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+        when(postRepository.findById(postId)).thenReturn(null);
 
         String view = controller.showEditPostForm(postId, model, principal);
 
@@ -123,7 +123,7 @@ class TeacherPostControllerUnitTest {
         Post post = new Post();
         post.setId(postId);
         post.setAuthor("otherTeacher");
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
 
         // Act
         String view = controller.showEditPostForm(postId, model, principal);

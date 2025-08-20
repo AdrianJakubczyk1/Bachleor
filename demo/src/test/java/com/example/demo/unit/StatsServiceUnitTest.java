@@ -1,43 +1,46 @@
 package com.example.demo.unit;
 
 import com.example.demo.service.StatsService;
-import com.example.demo.temp.model.AppStatistic;
-import com.example.demo.temp.repository.StatsDaoImplRepository;
+import com.example.demo.persistent.model.AppStatistic;
+import com.example.demo.persistent.repository.AppStatisticRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 public class StatsServiceUnitTest {
 
     @Mock
-    private StatsDaoImplRepository statsDao;
+    private AppStatisticRepository appStatisticRepository;
 
     @InjectMocks
     private StatsService statsService;
 
     @Test
-    public void testGetLatestStats() {
-        // Create a sample AppStatistic
+    void testGetLatestStats() {
+        // Arrange
         AppStatistic stat = new AppStatistic();
-        stat.setId(1L);
         stat.setStatName("postCount");
         stat.setStatValue(50L);
         stat.setTimestamp(LocalDateTime.now());
+        stat.setStatText(null);
 
-        // When the DAO's findAllStats is called, return sample list.
-        when(statsDao.findAllStats()).thenReturn(Collections.singletonList(stat));
+        when(appStatisticRepository.findAll())
+                .thenReturn(Collections.singletonList(stat));
 
-        Map<String, Long> latestStats = statsService.getLatestStats();
+        // Act
+        Map<String, Long> latest = statsService.getLatestStats();
 
-        assertEquals(50L, latestStats.get("postCount"));
+        // Assert
+        assertEquals(50L, latest.get("postCount"));
     }
 }

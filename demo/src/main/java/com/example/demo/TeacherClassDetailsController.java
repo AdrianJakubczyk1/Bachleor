@@ -36,11 +36,11 @@ public class TeacherClassDetailsController {
 
     @GetMapping("/teacher/classes/{classId}/students")
     public String viewClassStudents(@PathVariable Long classId, Model model, Principal principal) {
-        Optional<SchoolClass> classOpt = schoolClassRepository.findById(classId);
-        if (!classOpt.isPresent()) {
+        // findById now returns SchoolClass or null
+        SchoolClass schoolClass = schoolClassRepository.findById(classId);
+        if (schoolClass == null) {
             return "redirect:/teacher/classes?error=classNotFound";
         }
-        SchoolClass schoolClass = classOpt.get();
 
         User teacher = userRepository.findByUsername(principal.getName());
         if (teacher == null) {
@@ -49,25 +49,31 @@ public class TeacherClassDetailsController {
         if (schoolClass.getTeacherId() == null || !schoolClass.getTeacherId().equals(teacher.getId())) {
             return "redirect:/teacher/classes?error=notAuthorized";
         }
-        List<ClassSignUp> signups = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
 
+        List<ClassSignUp> signups = classSignUpRepository.findBySchoolClassId(schoolClass.getId());
         List<ClassSignUpDetail> signupDetails = new ArrayList<>();
+
         for (ClassSignUp su : signups) {
-            userRepository.findById(su.getUserId()).ifPresent(user -> {
+            // findById returns Optional<User>
+            Optional<User> studentOpt = userRepository.findById(su.getUserId());
+            if (studentOpt.isPresent()) {
+                User student = studentOpt.get();
                 ClassSignUpDetail detail = new ClassSignUpDetail();
                 detail.setSignUpId(su.getId());
-                detail.setStudentId(user.getId());
-                detail.setFirstName(user.getFirstName());
-                detail.setLastName(user.getLastName());
+                detail.setStudentId(student.getId());
+                detail.setFirstName(student.getFirstName());
+                detail.setLastName(student.getLastName());
                 detail.setStatus(su.getStatus());
                 detail.setCreatedDate(su.getCreatedDate());
                 signupDetails.add(detail);
-            });
+            }
         }
 
         model.addAttribute("schoolClass", schoolClass);
         model.addAttribute("signupDetails", signupDetails);
-        Iterable<Lesson> lessons = lessonRepository.findBySchoolClassId(classId);
+
+        // lessonRepository.findBySchoolClassId returns a List<Lesson>
+        List<Lesson> lessons = lessonRepository.findBySchoolClassId(classId);
         model.addAttribute("lessons", lessons);
 
         return "teacherClassStudents";
@@ -75,9 +81,11 @@ public class TeacherClassDetailsController {
 
     @PostMapping("/teacher/classes/{classId}/students/{signupId}/approve")
     public String approveSignup(@PathVariable Long classId, @PathVariable Long signupId) {
+        // findById now returns Optional<ClassSignUp>
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
-            classSignUpRepository.delete(opt.get());
+            // delete by ID, not by entity
+            classSignUpRepository.delete(signupId);
         }
         return "redirect:/teacher/classes/" + classId + "/students";
     }
@@ -86,7 +94,7 @@ public class TeacherClassDetailsController {
     public String rejectSignup(@PathVariable Long classId, @PathVariable Long signupId) {
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
-            classSignUpRepository.delete(opt.get());
+            classSignUpRepository.delete(signupId);
         }
         return "redirect:/teacher/classes/" + classId + "/students";
     }

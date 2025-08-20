@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast
+        xmlns="http://www.hazelcast.com/schema/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+    http://www.hazelcast.com/schema/config
+    http://www.hazelcast.com/schema/config/hazelcast-config-5.5.xsd">
+
+    <cluster-name>demo-cluster</cluster-name>
+
+    <network>
+        <join>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="true">
+                <member>127.0.0.1:5701</member>
+                <member>127.0.0.1:5702</member>
+                <member>127.0.0.1:5703</member>
+            </tcp-ip>
+        </join>
+        <port auto-increment="true">5701</port>
+    </network>
+
+    <!-- class_signups: index by schoolClassId & userId -->
+    <map name="class_signups">
+        <backup-count>1</backup-count>
+        <indexes>
+            <index type="HASH">
+                <attributes><attribute>schoolClassId</attribute></attributes>
+            </index>
+            <index type="HASH">
+                <attributes><attribute>userId</attribute></attributes>
+            </index>
+        </indexes>
+    </map>
+
+    <!-- lessons: index by schoolClassId -->
+    <map name="lessons">
+        <backup-count>1</backup-count>
+        <indexes>
+            <index type="HASH">
+                <attributes><attribute>schoolClassId</attribute></attributes>
+            </index>
+        </indexes>
+    </map>
+
+    <!-- lesson_tasks: index by lessonId -->
+    <map name="lesson_tasks">
+        <backup-count>1</backup-count>
+        <indexes>
+            <index type="HASH">
+                <attributes><attribute>lessonId</attribute></attributes>
+            </index>
+        </indexes>
+    </map>
+
+    <!-- task_submissions: index by lessonTaskId & userId -->
+    <map name="task_submissions">
+        <backup-count>1</backup-count>
+        <indexes>
+            <index type="HASH">
+                <attributes><attribute>lessonTaskId</attribute></attributes>
+            </index>
+            <index type="HASH">
+                <attributes><attribute>userId</attribute></attributes>
+            </index>
+        </indexes>
+    </map>
+
+    <!-- comment_likes: index by commentId & username -->
+    <map name="comment_likes">
+        <backup-count>1</backup-count>
+        <indexes>
+            <index type="HASH">
+                <attributes><attribute>commentId</attribute></attributes>
+            </index>
+            <index type="HASH">
+                <attributes><attribute>username</attribute></attributes>
+            </index>
+        </indexes>
+    </map>
+
+    <!-- posts: no extra indexes needed -->
+    <map name="posts">
+        <backup-count>1</backup-count>
+    </map>
+
+    <!-- users: no extra indexes -->
+    <map name="users">
+        <backup-count>1</backup-count>
+    </map>
+
+    <!-- HTTP sessions -->
+    <map name="spring:session:sessions">
+        <backup-count>1</backup-count>
+        <time-to-live-seconds>1800</time-to-live-seconds>
+        <eviction size="10000" max-size-policy="PER_NODE" eviction-policy="LRU"/>
+    </map>
+
+    <!-- application stats -->
+    <map name="app_statistics">
+        <backup-count>1</backup-count>
+    </map>
+
+    <!-- management center -->
+    <management-center ></management-center>
+</hazelcast>

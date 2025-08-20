@@ -68,9 +68,9 @@ public class AdminPostController {
     // Show form to edit an existing post
     @GetMapping("/{id}/edit")
     public String editPost(@PathVariable Long id, Model model) {
-        Optional<Post> postOpt = postRepository.findById(id);
-        if (postOpt.isPresent()) {
-            model.addAttribute("post", postOpt.get());
+        Post post = postRepository.findById(id);
+        if (post != null) {
+            model.addAttribute("post", post);
             return "adminPostEditForm";
         }
         return "redirect:/admin/posts";
@@ -82,9 +82,8 @@ public class AdminPostController {
                              @RequestParam String content,
                              @RequestParam(value="thumbnailFile", required=false) MultipartFile thumbnailFile,
                              @RequestParam(value = "file", required = false) MultipartFile file) {
-        Optional<Post> postOpt = postRepository.findById(id);
-        if (postOpt.isPresent()) {
-            Post post = postOpt.get();
+        Post post = postRepository.findById(id);
+        if (post != null) {
             post.setTitle(title);
             post.setContent(content);
             try {
@@ -109,7 +108,7 @@ public class AdminPostController {
     // Handle deletion of a post
     @PostMapping("/{id}/delete")
     public String deletePost(@PathVariable Long id) {
-        postRepository.deleteById(id);
+        postRepository.delete(id);
         return "redirect:/admin/posts";
     }
 }

@@ -122,7 +122,7 @@ class PostRatingControllerUnitTest {
         Post post = new Post();
         post.setId(postId);
         post.setAvgRating(0.0);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.findById(postId)).thenReturn(post);
         String view = controller.ratePost(postId, rating, principal);
         assertEquals("redirect:/posts/1", view);
         verify(userRepository).findByUsername("user1");

@@ -62,7 +62,7 @@ class LessonControllerUnitTest {
     @Test
     void testLessonDetail_LessonNotFound() {
         Long lessonId = 100L;
-        when(lessonRepository.findById(lessonId)).thenReturn(Optional.empty());
+        when(lessonRepository.findById(lessonId)).thenReturn(null);
 
         String view = controller.lessonDetail(lessonId, model, () -> "user1");
 
@@ -74,7 +74,7 @@ class LessonControllerUnitTest {
         Long lessonId = 101L;
         Lesson lesson = new Lesson();
         lesson.setSchoolClassId(10L);
-        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(lessonRepository.findById(lessonId)).thenReturn(lesson);
 
         String view = controller.lessonDetail(lessonId, model, null);
 
@@ -87,7 +87,7 @@ class LessonControllerUnitTest {
         Long lessonId = 102L;
         Lesson lesson = new Lesson();
         lesson.setSchoolClassId(20L);
-        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(lessonRepository.findById(lessonId)).thenReturn(lesson);
 
         // Simulate a principal with a username.
         Principal principal = () -> "nonexistentUser";
@@ -103,7 +103,7 @@ class LessonControllerUnitTest {
         Long lessonId = 103L;
         Lesson lesson = new Lesson();
         lesson.setSchoolClassId(30L);
-        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(lessonRepository.findById(lessonId)).thenReturn(lesson);
 
         Principal principal = () -> "userX";
         User user = new User();
@@ -126,7 +126,7 @@ class LessonControllerUnitTest {
         Long lessonId = 104L;
         Lesson lesson = new Lesson();
         lesson.setSchoolClassId(40L);
-        when(lessonRepository.findById(lessonId)).thenReturn(Optional.of(lesson));
+        when(lessonRepository.findById(lessonId)).thenReturn(lesson);
 
         Principal principal = () -> "userY";
         User user = new User();

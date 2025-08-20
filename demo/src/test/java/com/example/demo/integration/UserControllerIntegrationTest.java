@@ -12,7 +12,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import com.example.demo.persistent.repository.UserRepository;
 import com.example.demo.persistent.model.User;
-import org.springframework.jdbc.core.JdbcTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -24,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.demo.persistent.repository.UserRepository;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @SpringBootTest(
@@ -37,9 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 )
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@AutoConfigureTestDatabase(replace = Replace.ANY)
-@Sql(scripts = "/test-schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Transactional
 class AuthControllerIntegrationTest {
 
     @Autowired
@@ -53,7 +48,7 @@ class AuthControllerIntegrationTest {
 
     @BeforeEach
     void cleanUp() {
-        userRepository.deleteAll();
+        userRepository.findAll().forEach(r->userRepository.delete(r.getId()));
     }
 
     @Test

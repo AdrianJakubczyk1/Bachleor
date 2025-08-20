@@ -69,7 +69,7 @@ class AdminUserControllerUnitTest {
         SchoolClass schoolClass = new SchoolClass();
         schoolClass.setId(10L);
         schoolClass.setName("Math");
-        when(schoolClassRepository.findById(10L)).thenReturn(Optional.of(schoolClass));
+        when(schoolClassRepository.findById(10L)).thenReturn(schoolClass);
 
         String view = controller.listUsers(model);
 
@@ -92,15 +92,19 @@ class AdminUserControllerUnitTest {
         SchoolClass class2 = new SchoolClass();
         class2.setId(20L);
         class2.setName("History");
-        Iterable<SchoolClass> classIterable = Arrays.asList(class1, class2);
-        when(schoolClassRepository.findAll()).thenReturn(classIterable);
 
-        // Act
+        List<SchoolClass> classList = Arrays.asList(class1, class2);
+
+        when(schoolClassRepository.findAll()).thenReturn(classList);
         String view = controller.showAddUserForm(model);
+
         verify(model).addAttribute(eq("user"), any(User.class));
-        ArgumentCaptor<List<SchoolClass>> listCaptor = ArgumentCaptor.forClass(List.class);
-        verify(model).addAttribute(eq("classes"), listCaptor.capture());
-        List<SchoolClass> classes = listCaptor.getValue();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<SchoolClass>> captor = ArgumentCaptor.forClass(List.class);
+        verify(model).addAttribute(eq("classes"), captor.capture());
+        List<SchoolClass> classes = captor.getValue();
+
         assertEquals(2, classes.size());
         assertEquals("Math", classes.get(0).getName());
         assertEquals("History", classes.get(1).getName());
@@ -167,28 +171,39 @@ class AdminUserControllerUnitTest {
         User user = new User();
         user.setId(userId);
         user.setUsername("bob");
+        // findById now returns the entity or null
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
+        // Stub classes
         SchoolClass class1 = new SchoolClass();
         class1.setId(10L);
         class1.setName("Math");
-        Iterable<SchoolClass> classIterable = Arrays.asList(class1);
-        when(schoolClassRepository.findAll()).thenReturn(classIterable);
+        List<SchoolClass> classList = List.of(class1);
+        when(schoolClassRepository.findAll()).thenReturn(classList);
 
+        // Stub signups
         ClassSignUp signup = new ClassSignUp();
         signup.setSchoolClassId(10L);
-        when(classSignUpRepository.findByUserId(userId)).thenReturn(Arrays.asList(signup));
+        when(classSignUpRepository.findByUserId(userId))
+                .thenReturn(List.of(signup));
 
+        // Act
         String view = controller.showEditUserForm(userId, model);
 
+        // Assert model population
         verify(model).addAttribute("user", user);
-        ArgumentCaptor<List<SchoolClass>> classesCaptor = ArgumentCaptor.forClass(List.class);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<SchoolClass>> classesCaptor =
+                ArgumentCaptor.forClass(List.class);
         verify(model).addAttribute(eq("classes"), classesCaptor.capture());
         List<SchoolClass> classes = classesCaptor.getValue();
         assertEquals(1, classes.size());
         assertEquals("Math", classes.get(0).getName());
 
-        ArgumentCaptor<List<Long>> assignedCaptor = ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Long>> assignedCaptor =
+                ArgumentCaptor.forClass(List.class);
         verify(model).addAttribute(eq("assignedClasses"), assignedCaptor.capture());
         List<Long> assignedClasses = assignedCaptor.getValue();
         assertEquals(1, assignedClasses.size());
@@ -249,7 +264,7 @@ class AdminUserControllerUnitTest {
         assertEquals("encodedPassword", existingUser.getPassword());
         verify(userRepository).save(existingUser);
 
-        verify(classSignUpRepository).delete(signupExisting);
+        verify(classSignUpRepository).delete(signupExisting.getId());
         ArgumentCaptor<ClassSignUp> signupCaptor = ArgumentCaptor.forClass(ClassSignUp.class);
         verify(classSignUpRepository).save(signupCaptor.capture());
         ClassSignUp newSignup = signupCaptor.getValue();
@@ -264,7 +279,7 @@ class AdminUserControllerUnitTest {
     void testDeleteUser() {
         Long userId = 1L;
         String view = controller.deleteUser(userId);
-        verify(userRepository).deleteById(userId);
+        verify(userRepository).delete(userId);
         assertEquals("redirect:/admin/users", view);
     }
 }

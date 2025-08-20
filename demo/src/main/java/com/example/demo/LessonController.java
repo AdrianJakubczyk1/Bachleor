@@ -36,22 +36,20 @@ public class LessonController {
 
     @GetMapping("/lessons/{id}")
     public String lessonDetail(@PathVariable Long id, Model model, Principal principal) {
-        Optional<Lesson> lessonOpt = lessonRepository.findById(id);
-        if (!lessonOpt.isPresent()) {
+        // findById now returns Lesson or null
+        Lesson lesson = lessonRepository.findById(id);
+        if (lesson == null) {
             return "redirect:/classes";
         }
-        Lesson lesson = lessonOpt.get();
         Long classId = lesson.getSchoolClassId();
 
-        boolean allowed = false;
         boolean loggedIn = principal != null;
         model.addAttribute("loggedIn", loggedIn);
-
         if (!loggedIn) {
             return "redirect:/login";
         }
-        String username = principal.getName();
-        User user = userRepository.findByUsername(username);
+
+        User user = userRepository.findByUsername(principal.getName());
         if (user == null) {
             return "redirect:/login";
         }
@@ -59,14 +57,16 @@ public class LessonController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> "ROLE_ADMIN".equals(grantedAuthority.getAuthority()));
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         model.addAttribute("isAdmin", isAdmin);
 
-        if (isAdmin) {
-            allowed = true;
-        } else {
-            Optional<ClassSignUp> signupOpt = classSignUpRepository.findBySchoolClassIdAndUserId(classId, userId);
-            if (signupOpt.isPresent() && "APPROVED".equalsIgnoreCase(signupOpt.get().getStatus())) {
+        boolean allowed = isAdmin;
+        if (!allowed) {
+            // findBySchoolClassIdAndUserId returns Optional<ClassSignUp>
+            Optional<ClassSignUp> signupOpt =
+                    classSignUpRepository.findBySchoolClassIdAndUserId(classId, userId);
+            if (signupOpt.isPresent() &&
+                    "APPROVED".equalsIgnoreCase(signupOpt.get().getStatus())) {
                 allowed = true;
             }
         }
@@ -75,11 +75,17 @@ public class LessonController {
         }
 
         model.addAttribute("lesson", lesson);
+
         List<LessonRating> ratings = lessonRatingRepository.findByLessonId(id);
-        double averageRating = ratings.stream().mapToInt(LessonRating::getRating).average().orElse(0.0);
+        double averageRating = ratings.stream()
+                .mapToInt(LessonRating::getRating)
+                .average()
+                .orElse(0.0);
         model.addAttribute("averageRating", averageRating);
 
-        boolean userRated = lessonRatingRepository.findByLessonIdAndUserId(id, userId).isPresent();
+        boolean userRated = lessonRatingRepository
+                .findByLessonIdAndUserId(id, userId)
+                .isPresent();
         model.addAttribute("userRated", userRated);
 
         return "lessonDetail";

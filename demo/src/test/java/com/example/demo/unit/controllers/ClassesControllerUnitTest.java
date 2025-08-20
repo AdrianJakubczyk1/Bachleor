@@ -59,27 +59,30 @@ class ClassesControllerUnitTest {
 
     @Test
     void testListClasses() {
-
+        // Arrange
         SchoolClass class1 = new SchoolClass();
         class1.setId(1L);
         class1.setName("Math 101");
         SchoolClass class2 = new SchoolClass();
         class2.setId(2L);
         class2.setName("History 101");
-        Iterable<SchoolClass> classesIterable = Arrays.asList(class1, class2);
+        List<SchoolClass> classList = List.of(class1, class2);
 
-        when(schoolClassRepository.findAll()).thenReturn(classesIterable);
+        // Stub to return a List (which is a Collection)
+        when(schoolClassRepository.findAll()).thenReturn(classList);
 
+        // Act
         String viewName = controller.listClasses(model);
 
-        verify(model).addAttribute("classes", classesIterable);
+        // Assert
+        verify(model).addAttribute("classes", classList);
         assertEquals("classes", viewName);
     }
 
     @Test
     void testClassDetailClassNotFound() {
         Long classId = 99L;
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.empty());
+        when(schoolClassRepository.findById(classId)).thenReturn(null);
 
         // Act
         String viewName = controller.classDetail(classId, model, null);
@@ -121,7 +124,7 @@ class ClassesControllerUnitTest {
         SchoolClass schoolClass = new SchoolClass();
         schoolClass.setId(classId);
         schoolClass.setAutoApprove(true);
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.of(schoolClass));
+        when(schoolClassRepository.findById(classId)).thenReturn(schoolClass);
 
         String redirect = controller.signUp(classId, principal);
 
@@ -155,7 +158,7 @@ class ClassesControllerUnitTest {
         SchoolClass schoolClass = new SchoolClass();
         schoolClass.setId(classId);
         schoolClass.setName("Philosophy");
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.of(schoolClass));
+        when(schoolClassRepository.findById(classId)).thenReturn(schoolClass);
 
         Lesson lesson1 = new Lesson();
         lesson1.setId(100L);
@@ -188,7 +191,7 @@ class ClassesControllerUnitTest {
     @Test
     void testViewLessonsClassNotFound() {
         Long classId = 99L;
-        when(schoolClassRepository.findById(classId)).thenReturn(Optional.empty());
+        when(schoolClassRepository.findById(classId)).thenReturn(null);
 
         String viewName = controller.viewLessons(classId, model, null);
         assertEquals("redirect:/classes?error=classNotFound", viewName);

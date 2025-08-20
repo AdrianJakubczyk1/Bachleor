@@ -52,11 +52,17 @@ public class AdminClassesControllerTest {
 
     @Test
     void testShowAssignTeacherFormClassNotFound() {
-        when(schoolClassRepository.findById(anyLong())).thenReturn(Optional.empty());
+        // Stub the repo to return null when not found
+        when(schoolClassRepository.findById(anyLong()))
+                .thenReturn(null);
 
         String viewName = adminClassesController.showAssignTeacherForm(1L, model);
 
+        // Should redirect back to the list
         assertEquals("redirect:/admin/classes", viewName);
+        // And never attempt to populate the model
+        verify(model, never()).addAttribute(eq("schoolClass"), any());
+        verify(model, never()).addAttribute(eq("teachers"), any());
     }
 
     @Test
@@ -64,7 +70,9 @@ public class AdminClassesControllerTest {
         SchoolClass schoolClass = new SchoolClass();
         schoolClass.setId(1L);
 
-        when(schoolClassRepository.findById(1L)).thenReturn(Optional.of(schoolClass));
+        // Stub to return the raw entity
+        when(schoolClassRepository.findById(1L))
+                .thenReturn(schoolClass);
 
         String viewName = adminClassesController.assignTeacher(1L, 2L);
 
@@ -75,7 +83,9 @@ public class AdminClassesControllerTest {
 
     @Test
     void testAssignTeacherClassNotFound() {
-        when(schoolClassRepository.findById(anyLong())).thenReturn(Optional.empty());
+        // Stub to return null when not found
+        when(schoolClassRepository.findById(anyLong()))
+                .thenReturn(null);
 
         String viewName = adminClassesController.assignTeacher(1L, 2L);
 
@@ -85,11 +95,11 @@ public class AdminClassesControllerTest {
 
     @Test
     void testDeleteClass() {
-        doNothing().when(schoolClassRepository).deleteById(1L);
+        doNothing().when(schoolClassRepository).delete(1L);
 
         String viewName = adminClassesController.deleteClass(1L);
 
-        verify(schoolClassRepository).deleteById(1L);
+        verify(schoolClassRepository).delete(1L);
         assertEquals("redirect:/admin/classes", viewName);
     }
 }

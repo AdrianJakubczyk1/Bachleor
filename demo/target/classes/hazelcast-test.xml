@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast
+        xmlns="http://www.hazelcast.com/schema/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+    http://www.hazelcast.com/schema/config
+    http://www.hazelcast.com/schema/config/hazelcast-config-5.5.xsd">
+
+    <!-- Give tests their own cluster name -->
+    <cluster-name>demo-test-cluster</cluster-name>
+
+    <network>
+        <!-- Disable all external joining -->
+        <join>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="false"/>
+        </join>
+        <!-- Pick any free port -->
+        <port auto-increment="true">5701</port>
+        <!-- Loopback-only for embedded tests -->
+        <interfaces enabled="true">
+            <interface>127.0.0.1</interface>
+        </interfaces>
+    </network>
+
+    <!-- Apply a simple default for every map in tests -->
+    <map name="*">
+        <!-- one backup to mimic prod -->
+        <backup-count>1</backup-count>
+        <!-- no indexes, keeping startup fast -->
+    </map>
+
+    <!-- HTTP session map (Spring Session) -->
+    <map name="spring:session:sessions">
+        <backup-count>1</backup-count>
+        <time-to-live-seconds>1800</time-to-live-seconds>
+    </map>
+
+    <!-- disable Management Center in tests -->
+    <management-center/>
+</hazelcast>

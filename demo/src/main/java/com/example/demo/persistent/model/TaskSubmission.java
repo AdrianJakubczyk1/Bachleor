@@ -1,38 +1,47 @@
 package com.example.demo.persistent.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import java.util.Arrays;
+import java.util.Objects;
 
-@Table("task_submissions")
-public class TaskSubmission {
+public class TaskSubmission implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @Id
     private Long id;
-
-    // Foreign key to the lesson task
     private Long lessonTaskId;
-
-    // Student's user ID – assuming a numeric ID for the student
     private Long userId;
-
-    // Optional file data or solution text (for simplicity, using TEXT for solution content)
     private String solutionText;
-
-    // Alternatively, if you expect file uploads, you could use a byte[] field.
     private byte[] solutionFile;
     private String solutionFilename;
     private String solutionContentType;
-
     private LocalDateTime submittedDate;
-
-    // A grade, for example numeric grade. Null if not yet graded.
     private Double grade;
-
-    // Teacher comments for the submission (optional)
     private String teacherComments;
 
-    // Getters and Setters
+    public TaskSubmission() {}
+
+    public TaskSubmission(Long id,
+                          Long lessonTaskId,
+                          Long userId,
+                          String solutionText,
+                          byte[] solutionFile,
+                          String solutionFilename,
+                          String solutionContentType,
+                          LocalDateTime submittedDate,
+                          Double grade,
+                          String teacherComments) {
+        this.id = id;
+        this.lessonTaskId = lessonTaskId;
+        this.userId = userId;
+        this.solutionText = solutionText;
+        this.solutionFile = solutionFile;
+        this.solutionFilename = solutionFilename;
+        this.solutionContentType = solutionContentType;
+        this.submittedDate = submittedDate;
+        this.grade = grade;
+        this.teacherComments = teacherComments;
+    }
 
     public Long getId() {
         return id;
@@ -102,5 +111,40 @@ public class TaskSubmission {
     }
     public void setTeacherComments(String teacherComments) {
         this.teacherComments = teacherComments;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TaskSubmission)) return false;
+        TaskSubmission that = (TaskSubmission) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(lessonTaskId, that.lessonTaskId) &&
+                Objects.equals(userId, that.userId) &&
+                Objects.equals(solutionText, that.solutionText) &&
+                Arrays.equals(solutionFile, that.solutionFile) &&
+                Objects.equals(solutionFilename, that.solutionFilename) &&
+                Objects.equals(solutionContentType, that.solutionContentType) &&
+                Objects.equals(submittedDate, that.submittedDate) &&
+                Objects.equals(grade, that.grade) &&
+                Objects.equals(teacherComments, that.teacherComments);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(id, lessonTaskId, userId, solutionText, solutionFilename, solutionContentType, submittedDate, grade, teacherComments);
+        result = 31 * result + Arrays.hashCode(solutionFile);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TaskSubmission{" +
+                "id=" + id +
+                ", lessonTaskId=" + lessonTaskId +
+                ", userId=" + userId +
+                ", submittedDate=" + submittedDate +
+                ", grade=" + grade +
+                '}';
     }
 }

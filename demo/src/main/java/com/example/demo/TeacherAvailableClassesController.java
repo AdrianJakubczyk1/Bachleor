@@ -37,13 +37,12 @@ public class TeacherAvailableClassesController {
             return "redirect:/login";
         }
         Long teacherId = teacher.getId();
-        Optional<SchoolClass> classOpt = schoolClassRepository.findById(id);
-        if (classOpt.isPresent()) {
-            SchoolClass cls = classOpt.get();
-            if (cls.getTeacherId() == null) {
-                cls.setTeacherId(teacherId);
-                schoolClassRepository.save(cls);
-            }
+
+        // findById now returns SchoolClass or null
+        SchoolClass cls = schoolClassRepository.findById(id);
+        if (cls != null && cls.getTeacherId() == null) {
+            cls.setTeacherId(teacherId);
+            schoolClassRepository.save(cls);
         }
         return "redirect:/teacher/availableClasses";
     }

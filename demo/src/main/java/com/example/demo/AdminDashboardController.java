@@ -1,22 +1,26 @@
 package com.example.demo;
-import com.example.demo.temp.repository.StatsDaoImplRepository;
-import com.example.demo.temp.model.AppStatistic;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.persistent.model.AppStatistic;
+import com.example.demo.persistent.repository.AppStatisticRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 public class AdminDashboardController {
-    @Autowired
-    private StatsDaoImplRepository statsDao;
+
+    private final AppStatisticRepository statsRepository;
+
+    public AdminDashboardController(AppStatisticRepository statsRepository) {
+        this.statsRepository = statsRepository;
+    }
 
     @GetMapping("/admin")
     public String adminDashboard(Model model) {
-        List<AppStatistic> stats = statsDao.findAllStats();
+        List<AppStatistic> stats = statsRepository.findAll().stream().toList();
+
         List<String> statsLabels = stats.stream()
                 .map(AppStatistic::getStatName)
                 .collect(Collectors.toList());
