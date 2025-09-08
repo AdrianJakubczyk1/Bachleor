@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="SciData — Teachers (post/lesson/comment) + Users (rate as USER)" enabled="true">
+      <stringProp name="TestPlan.comments">Two thread groups: TEACHER actions (add post, add lesson, comment) and USER actions (rate post). No CSS extractor, no Groovy (compatible with JDK 23). CSRF tokens via HtmlExtractor. Extract IDs via Regex.</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Vars" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="PROTOCOL" elementType="Argument"><stringProp name="Argument.name">PROTOCOL</stringProp><stringProp name="Argument.value">http</stringProp></elementProp>
+          <elementProp name="HOST" elementType="Argument"><stringProp name="Argument.name">HOST</stringProp><stringProp name="Argument.value">localhost</stringProp></elementProp>
+          <elementProp name="PORT" elementType="Argument"><stringProp name="Argument.name">PORT</stringProp><stringProp name="Argument.value">8080</stringProp></elementProp>
+
+          <elementProp name="USERS_TEACHERS" elementType="Argument"><stringProp name="Argument.name">USERS_TEACHERS</stringProp><stringProp name="Argument.value">100</stringProp></elementProp>
+          <elementProp name="USERS_USERS" elementType="Argument"><stringProp name="Argument.name">USERS_USERS</stringProp><stringProp name="Argument.value">100</stringProp></elementProp>
+          <elementProp name="RAMP_SEC" elementType="Argument"><stringProp name="Argument.name">RAMP_SEC</stringProp><stringProp name="Argument.value">60</stringProp></elementProp>
+          <elementProp name="DURATION_SEC" elementType="Argument"><stringProp name="Argument.name">DURATION_SEC</stringProp><stringProp name="Argument.value">300</stringProp></elementProp>
+
+          <elementProp name="TEACHER_MAX" elementType="Argument"><stringProp name="Argument.name">TEACHER_MAX</stringProp><stringProp name="Argument.value">2000</stringProp></elementProp>
+          <elementProp name="USER_MAX" elementType="Argument"><stringProp name="Argument.name">USER_MAX</stringProp><stringProp name="Argument.value">2000</stringProp></elementProp>
+          <elementProp name="LIST_PAGE_MAX" elementType="Argument"><stringProp name="Argument.name">LIST_PAGE_MAX</stringProp><stringProp name="Argument.value">30</stringProp></elementProp>
+
+          <elementProp name="PATH_LOGIN_GET" elementType="Argument"><stringProp name="Argument.name">PATH_LOGIN_GET</stringProp><stringProp name="Argument.value">/login</stringProp></elementProp>
+          <elementProp name="PATH_LOGIN_POST" elementType="Argument"><stringProp name="Argument.name">PATH_LOGIN_POST</stringProp><stringProp name="Argument.value">/perform_login</stringProp></elementProp>
+          <elementProp name="PATH_CLASSES" elementType="Argument"><stringProp name="Argument.name">PATH_CLASSES</stringProp><stringProp name="Argument.value">/teacher/classes</stringProp></elementProp>
+        </collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.serialize_threadgroups">false</stringProp>
+    </TestPlan>
+    <hashTree>
+
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Defaults" enabled="true">
+        <stringProp name="HTTPSampler.domain">${HOST}</stringProp>
+        <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+        <stringProp name="HTTPSampler.protocol">${PROTOCOL}</stringProp>
+        <stringProp name="HTTPSampler.connect_timeout">15000</stringProp>
+        <stringProp name="HTTPSampler.response_timeout">15000</stringProp>
+        <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+        <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+      </CookieManager>
+      <hashTree/>
+      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="HTTP Cache Manager" enabled="true">
+        <boolProp name="clearEachIteration">false</boolProp>
+      </CacheManager>
+      <hashTree/>
+
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Teachers — add post / lesson / comment" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${USERS_TEACHERS}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${RAMP_SEC}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">${DURATION_SEC}</stringProp>
+      </ThreadGroup>
+      <hashTree>
+
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only — login TEACHER" enabled="true"/>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /login [teacher]" enabled="true">
+            <stringProp name="HTTPSampler.path">${PATH_LOGIN_GET}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_LOGIN_TEACHER: input[name=_csrf]" enabled="true">
+              <stringProp name="HtmlExtractor.refname">CSRF_LOGIN_T</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.default">MISSING</stringProp>
+            </HtmlExtractor>
+            <hashTree/>
+          </hashTree>
+
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /perform_login [teacher/Password.]" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="username" elementType="HTTPArgument"><stringProp name="Argument.name">username</stringProp><stringProp name="Argument.value">teacher${__Random(1,${TEACHER_MAX},)}</stringProp></elementProp>
+                <elementProp name="Password" elementType="HTTPArgument"><stringProp name="Argument.name">Password</stringProp><stringProp name="Argument.value">Password.</stringProp></elementProp>
+                <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_LOGIN_T}</stringProp></elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">${PATH_LOGIN_POST}</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: login TEACHER" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Origin</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/login</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_LOGIN_T}</stringProp></elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert login redirect contains Location or JSESSIONID" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="0">JSESSIONID</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Login TEACHER likely failed — missing session cookie.</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">2</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Pacing 200-600 ms [T]" enabled="true">
+          <stringProp name="ConstantTimer.delay">200</stringProp>
+          <stringProp name="RandomTimer.range">400</stringProp>
+        </UniformRandomTimer>
+        <hashTree/>
+
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="T — Add Post (40%)" enabled="true">
+          <intProp name="ThroughputController.style">1</intProp>
+          <boolProp name="ThroughputController.perThread">true</boolProp>
+          <doubleProp name="ThroughputController.percentThroughput">40.0</doubleProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /teacher/posts/new" enabled="true">
+            <stringProp name="HTTPSampler.path">/teacher/posts/new</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_POST_FORM [T]" enabled="true">
+              <stringProp name="HtmlExtractor.refname">CSRF_POST_T</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.default">${CSRF_LOGIN_T}</stringProp>
+            </HtmlExtractor>
+            <hashTree/>
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /teacher/posts/new [T]" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="title" elementType="HTTPArgument"><stringProp name="Argument.name">title</stringProp><stringProp name="Argument.value">Perf post ${__UUID}</stringProp></elementProp>
+                <elementProp name="content" elementType="HTTPArgument"><stringProp name="Argument.name">content</stringProp><stringProp name="Argument.value">Content ${__time(Y-M-d H:m:s)}</stringProp></elementProp>
+                <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_POST_T}</stringProp></elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/teacher/posts/new</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: POST new post [T]" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/teacher/posts/new</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_POST_T}</stringProp></elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="T — Add Lesson (40%)" enabled="true">
+          <intProp name="ThroughputController.style">1</intProp>
+          <boolProp name="ThroughputController.perThread">true</boolProp>
+          <doubleProp name="ThroughputController.percentThroughput">40.0</doubleProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET ${PATH_CLASSES} [T]" enabled="true">
+            <stringProp name="HTTPSampler.path">${PATH_CLASSES}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="CLASS_ID from anchors [T]" enabled="true">
+              <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+              <stringProp name="RegexExtractor.refname">CLASS_ID_T</stringProp>
+              <stringProp name="RegexExtractor.regex">href=&quot;[^&quot;]*/teacher/classes/([0-9]+)/lessons(?:/new)?&quot;</stringProp>
+              <stringProp name="RegexExtractor.template">$1$</stringProp>
+              <stringProp name="RegexExtractor.default">MISSING</stringProp>
+              <stringProp name="RegexExtractor.match_number">0</stringProp>
+            </RegexExtractor>
+            <hashTree/>
+          </hashTree>
+
+          <IfController guiclass="IfControllerPanel" testclass="IfController" testname="IF CLASS_ID ok → create lesson [T]" enabled="true">
+            <stringProp name="IfController.condition">"${CLASS_ID_T}" != "MISSING"</stringProp>
+            <boolProp name="IfController.evaluateAll">false</boolProp>
+          </IfController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /teacher/classes/${CLASS_ID_T}/lessons/new [T]" enabled="true">
+              <stringProp name="HTTPSampler.path">/teacher/classes/${CLASS_ID_T}/lessons/new</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_LESSON_FORM [T]" enabled="true">
+                <stringProp name="HtmlExtractor.refname">CSRF_LESSON_T</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.default">${CSRF_LOGIN_T}</stringProp>
+              </HtmlExtractor>
+              <hashTree/>
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /teacher/classes/${CLASS_ID_T}/lessons/new [T]" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="title" elementType="HTTPArgument"><stringProp name="Argument.name">title</stringProp><stringProp name="Argument.value">Perf lesson ${__UUID}</stringProp></elementProp>
+                  <elementProp name="description" elementType="HTTPArgument"><stringProp name="Argument.name">description</stringProp><stringProp name="Argument.value">Lesson desc ${__time(Y-M-d H:m:s)}</stringProp></elementProp>
+                  <elementProp name="solutionRequired" elementType="HTTPArgument"><stringProp name="Argument.name">solutionRequired</stringProp><stringProp name="Argument.value"></stringProp></elementProp>
+                  <elementProp name="solutionDueDateStr" elementType="HTTPArgument"><stringProp name="Argument.name">solutionDueDateStr</stringProp><stringProp name="Argument.value"></stringProp></elementProp>
+                  <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_LESSON_T}</stringProp></elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.path">/teacher/classes/${CLASS_ID_T}/lessons/new</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: POST new lesson [T]" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/teacher/classes/${CLASS_ID_T}/lessons/new</stringProp></elementProp>
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_LESSON_T}</stringProp></elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="T — Comment on /posts/{id} (20%)" enabled="true">
+          <intProp name="ThroughputController.style">1</intProp>
+          <boolProp name="ThroughputController.perThread">true</boolProp>
+          <doubleProp name="ThroughputController.percentThroughput">20.0</doubleProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /posts (list) [T]" enabled="true">
+            <stringProp name="HTTPSampler.path">/posts?page=${__Random(0,${LIST_PAGE_MAX},)}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="POST_ID from anchors [T]" enabled="true">
+              <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+              <stringProp name="RegexExtractor.refname">POST_ID_T</stringProp>
+              <stringProp name="RegexExtractor.regex">/posts/([0-9A-Za-z\-]+)</stringProp>
+              <stringProp name="RegexExtractor.template">$1$</stringProp>
+              <stringProp name="RegexExtractor.default">MISSING</stringProp>
+              <stringProp name="RegexExtractor.match_number">0</stringProp>
+            </RegexExtractor>
+            <hashTree/>
+          </hashTree>
+          <IfController guiclass="IfControllerPanel" testclass="IfController" testname="IF POST_ID_T ok [T]" enabled="true">
+            <stringProp name="IfController.condition">"${POST_ID_T}" != "MISSING"</stringProp>
+            <boolProp name="IfController.evaluateAll">false</boolProp>
+          </IfController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /posts/${POST_ID_T} [T]" enabled="true">
+              <stringProp name="HTTPSampler.path">/posts/${POST_ID_T}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_POST [T]" enabled="true">
+                <stringProp name="HtmlExtractor.refname">CSRF_POST_T</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.default">${CSRF_LOGIN_T}</stringProp>
+              </HtmlExtractor>
+              <hashTree/>
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /posts/${POST_ID_T}/comments [T]" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="text" elementType="HTTPArgument"><stringProp name="Argument.name">text</stringProp><stringProp name="Argument.value">Perf comment ${__UUID}</stringProp></elementProp>
+                  <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_POST_T}</stringProp></elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.path">/posts/${POST_ID_T}/comments</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: POST comment [T]" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/posts/${POST_ID_T}</stringProp></elementProp>
+                  <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_POST_T}</stringProp></elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+
+      </hashTree>
+
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Users — rate post (as USER)" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${USERS_USERS}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${RAMP_SEC}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">${DURATION_SEC}</stringProp>
+      </ThreadGroup>
+      <hashTree>
+
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Once Only — login USER" enabled="true"/>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /login [user]" enabled="true">
+            <stringProp name="HTTPSampler.path">${PATH_LOGIN_GET}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_LOGIN_USER: input[name=_csrf]" enabled="true">
+              <stringProp name="HtmlExtractor.refname">CSRF_LOGIN_U</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.default">MISSING</stringProp>
+            </HtmlExtractor>
+            <hashTree/>
+          </hashTree>
+
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /perform_login [user/Password.]" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="username" elementType="HTTPArgument"><stringProp name="Argument.name">username</stringProp><stringProp name="Argument.value">user${__Random(1,${USER_MAX},)}</stringProp></elementProp>
+                <elementProp name="Password" elementType="HTTPArgument"><stringProp name="Argument.name">Password</stringProp><stringProp name="Argument.value">Password.</stringProp></elementProp>
+                <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_LOGIN_U}</stringProp></elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">${PATH_LOGIN_POST}</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: login USER" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Origin</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/login</stringProp></elementProp>
+                <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_LOGIN_U}</stringProp></elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert login USER has JSESSIONID" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="0">JSESSIONID</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Login USER likely failed — missing session cookie.</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">2</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Pacing 200-600 ms [U]" enabled="true">
+          <stringProp name="ConstantTimer.delay">200</stringProp>
+          <stringProp name="RandomTimer.range">400</stringProp>
+        </UniformRandomTimer>
+        <hashTree/>
+
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="U — Rate post (100%)" enabled="true">
+          <intProp name="ThroughputController.style">1</intProp>
+          <boolProp name="ThroughputController.perThread">true</boolProp>
+          <doubleProp name="ThroughputController.percentThroughput">100.0</doubleProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /posts (list) [U]" enabled="true">
+            <stringProp name="HTTPSampler.path">/posts?page=${__Random(0,${LIST_PAGE_MAX},)}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="POST_ID from anchors [U]" enabled="true">
+              <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+              <stringProp name="RegexExtractor.refname">POST_ID_U</stringProp>
+              <stringProp name="RegexExtractor.regex">/posts/([0-9A-Za-z\-]+)</stringProp>
+              <stringProp name="RegexExtractor.template">$1$</stringProp>
+              <stringProp name="RegexExtractor.default">MISSING</stringProp>
+              <stringProp name="RegexExtractor.match_number">0</stringProp>
+            </RegexExtractor>
+            <hashTree/>
+          </hashTree>
+
+          <IfController guiclass="IfControllerPanel" testclass="IfController" testname="IF POST_ID_U ok [U]" enabled="true">
+            <stringProp name="IfController.condition">"${POST_ID_U}" != "MISSING"</stringProp>
+            <boolProp name="IfController.evaluateAll">false</boolProp>
+          </IfController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /posts/${POST_ID_U} [U]" enabled="true">
+              <stringProp name="HTTPSampler.path">/posts/${POST_ID_U}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="CSRF_POST [U]" enabled="true">
+                <stringProp name="HtmlExtractor.refname">CSRF_POST_U</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name=_csrf]</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.default">${CSRF_LOGIN_U}</stringProp>
+              </HtmlExtractor>
+              <hashTree/>
+            </hashTree>
+
+            <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="Compute DO_RATE [U]" enabled="true">
+              <stringProp name="script">String postId = vars.get("POST_ID_U");
+String rated = vars.get("RATED_IDS_U");
+boolean seen = false;
+if (postId != null &amp;&amp; postId.length() &gt; 0) {
+  if (rated != null &amp;&amp; rated.length() &gt; 0) {
+    String[] arr = rated.split(",");
+    for (int i=0; i&lt;arr.length; i++) { if (arr[i].equals(postId)) { seen = true; break; } }
+    if (!seen) { vars.put("RATED_IDS_U", rated + "," + postId); }
+  } else {
+    vars.put("RATED_IDS_U", postId);
+  }
+}
+vars.put("DO_RATE_U", seen ? "false" : "true");</stringProp>
+            </BeanShellPreProcessor>
+            <hashTree/>
+
+            <IfController guiclass="IfControllerPanel" testclass="IfController" testname="IF DO_RATE_U [U]" enabled="true">
+              <stringProp name="IfController.condition">${DO_RATE_U}</stringProp>
+              <boolProp name="IfController.evaluateAll">false</boolProp>
+              <boolProp name="IfController.useExpression">false</boolProp>
+            </IfController>
+            <hashTree>
+              <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /posts/${POST_ID_U}/rate [U]" enabled="true">
+                <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                  <collectionProp name="Arguments.arguments">
+                    <elementProp name="rating" elementType="HTTPArgument"><stringProp name="Argument.name">rating</stringProp><stringProp name="Argument.value">${__Random(0,10,)}</stringProp></elementProp>
+                    <elementProp name="_csrf" elementType="HTTPArgument"><stringProp name="Argument.name">_csrf</stringProp><stringProp name="Argument.value">${CSRF_POST_U}</stringProp></elementProp>
+                  </collectionProp>
+                </elementProp>
+                <stringProp name="HTTPSampler.path">/posts/${POST_ID_U}/rate</stringProp>
+                <stringProp name="HTTPSampler.method">POST</stringProp>
+                <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              </HTTPSamplerProxy>
+              <hashTree>
+                <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers: POST rate [U]" enabled="true">
+                  <collectionProp name="HeaderManager.headers">
+                    <elementProp name="" elementType="Header"><stringProp name="Header.name">Content-Type</stringProp><stringProp name="Header.value">application/x-www-form-urlencoded</stringProp></elementProp>
+                    <elementProp name="" elementType="Header"><stringProp name="Header.name">Referer</stringProp><stringProp name="Header.value">http://${HOST}:${PORT}/posts/${POST_ID_U}</stringProp></elementProp>
+                    <elementProp name="" elementType="Header"><stringProp name="Header.name">X-CSRF-TOKEN</stringProp><stringProp name="Header.value">${CSRF_POST_U}</stringProp></elementProp>
+                  </collectionProp>
+                </HeaderManager>
+                <hashTree/>
+              </hashTree>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+
+      </hashTree>
+
+      <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="JTL Writer" enabled="true">
+        <objProp><name>saveConfig</name><value class="SampleSaveConfiguration">
+          <time>true</time><latency>true</latency><timestamp>true</timestamp><success>true</success>
+          <label>true</label><code>true</code><threadName>true</threadName><assertions>true</assertions>
+          <fieldNames>true</fieldNames><bytes>true</bytes><sentBytes>true</sentBytes><url>true</url>
+          <threadCounts>true</threadCounts><idleTime>true</idleTime><connectTime>true</connectTime>
+        </value></objProp>
+        <stringProp name="filename">out/results_${__time(YMDHMS)}.jtl</stringProp>
+      </ResultCollector>
+      <hashTree/>
+
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

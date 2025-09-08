@@ -1,108 +1,143 @@
-\chapter{Testowanie i ocena aplikacji}
+\chapter{Implementacja} Ten rozdział omawia szczegółowe aspekty implementacji platformy do udostępniania materiałów edukacyjnych, obejmujące konfigurację środowiska, logikę backendu, integrację frontendową oraz mechanizmy przechowywania danych użyte w projekcie. Opisano warstwową architekturę aplikacji, zastosowanie Hazelcast jako magazynu danych w pamięci oraz kluczowe elementy implementacyjne. \section{Konfiguracja środowiska} Środowisko deweloperskie zostało przygotowane przez dobór odpowiednich narzędzi, frameworków oraz technologii, co umożliwia szybkie tworzenie aplikacji i utrzymanie wysokiej jakości kodu. W projekcie zastosowano zestaw sprawdzonych narzędzi tworzących spójny stos, warstwę aplikacyjną oparto na Spring (w tym Spring Boot i Spring Security), jako baza danych w pamięci użyta jest baza danych Hazelcast, dostęp do danych zapewnia JPA, widoki renderuje Thymeleaf, a jakość kodu weryfikują testy napisane w JUnit oraz testy wydajnościowe aplikacji zostały przeprowadzone z użyciem narzędzia JMeter.
+Zależności projektowe zdefiniowano w pliku konfiguracyjnym \texttt{pom.xml} (Maven), co zapewnia łatwą integrację zewnętrznych bibliotek, takich jak Spring Web, Spring Security, Spring Session, Hazelcast, Thymeleaf oraz narzędzi testowych (JUnit, Mockito). 
 
-W niniejszym rozdziale przedstawiono proces testowania aplikacji oraz ocenę poprawności jej działania. Omówione zostały podejścia wykorzystane w testach jednostkowych oraz integracyjnych, a także ocena wydajności aplikacji.
+\section{Logika backendu i architektura warstwowa} Backend aplikacji oparto na architekturze warstwowej, obejmującej kontrolery, serwisy oraz repozytoria. Takie podejście zapewnia wyraźny podział odpowiedzialności między warstwami, co ułatwia utrzymanie i testowanie aplikacji. Warstwa kontrolerów reaguje na żądania HTTP i deleguje logikę do komponentów domenowych, serwisy realizują logikę biznesową, a baza danych zarządza trwałym przechowywaniem danych. Poniżej omówiono kluczowe komponenty backendu. 
 
-\section{Wprowadzenie do testowania aplikacji}
-
-Testowanie stanowi kluczowy element procesu tworzenia oprogramowania, umożliwiający wykrycie błędów oraz weryfikację poprawności działania zaimplementowanych funkcjonalności. W ramach tej aplikacji wykorzystano dwa główne rodzaje testów:
-
-\begin{itemize}
-    \item Testy jednostkowe – testujące pojedyncze klasy oraz metody.
-    \item Testy integracyjne – sprawdzające poprawność współdziałania wielu komponentów systemu.
-\end{itemize}
-
-\section{Testy jednostkowe}
-
-Testy jednostkowe zostały napisane z użyciem frameworka JUnit 5, który jest szeroko stosowany w aplikacjach Java ze względu na łatwość integracji ze środowiskiem Spring Boot. 
-
-Przykładowe testy jednostkowe objęły klasy:
-
-\begin{itemize}
-    \item Serwisy (np. \texttt{StatsService}), które weryfikują poprawność operacji na danych.
-    \item Klasy DAO (np. \texttt{StatsDaoImpl}), które sprawdzają prawidłowe wykonanie zapytań SQL do bazy danych H2.
-    \item Kontrolery, gdzie przy pomocy MockMVC testowano poprawność zwracanych widoków oraz danych.
-\end{itemize}
-
-\subsection{Przykład testu jednostkowego}
-
-Poniżej przedstawiono przykład testu jednostkowego dla klasy \texttt{StatsService}:
-
-\begin{lstlisting}[language=Java]
-@Test
-void shouldUpdateStatisticsCorrectly() {
-    when(postRepository.count()).thenReturn(10L);
-    when(userRepository.countByRole("TEACHER")).thenReturn(2L);
-
-    statsService.updateStatistics();
-
-    verify(statsDao, times(1)).saveStat(any(AppStatistic.class));
+\subsection{Uwierzytelnianie i autoryzacja użytkowników} Uwierzytelnianie użytkowników oraz autoryzacja oparta na rolach zostały zrealizowane za pomocą biblioteki Spring Security. Konfiguracja bezpieczeństwa definiuje chronione obszary aplikacji np. wszystkie adresy URL zaczynające się od \texttt{/admin} są dostępne wyłącznie dla administratorów, a ścieżki \texttt{/teacher} tylko dla użytkowników z rolą nauczyciela. W obszarze bezpieczeństwa zastosowano Spring Security, który udostępnia typowe elementy uwierzytelniania i autoryzacji (formularze logowania, role, reguły dostępu) oraz bezpieczne wylogowanie przez unieważnienie sesji i wyczyszczenie ciasteczek \cite{spring-security-in-action-2e}. Hasła użytkowników są bezpiecznie przechowywane przed zapisaniem do bazy aplikacja szyfruje je algorytmem BCrypt (poprzez \texttt{PasswordEncoder}), co znacząco podnosi poziom bezpieczeństwa danych w razie ewentualnego wycieku. W aplikacji zaimplementowano trzy główne role użytkowników zgodnie z wymaganiami funkcjonalnymi platformy edukacyjnej: \begin{itemize}
+\item \textbf{Student (rola \texttt{USER})} – może rejestrować się w systemie, zapisywać na wybrane zajęcia (kursy), przeglądać dostępne materiały oraz przesyłać rozwiązania zadań.
+\item \textbf{Nauczyciel (rola \texttt{TEACHER})} – ma uprawnienia studenta, a dodatkowo może tworzyć nowe materiały edukacyjne (posty, lekcje, zadania) oraz przeglądać i oceniać zgłoszone rozwiązania zadań swoich studentów.
+\item \textbf{Administrator (rola \texttt{ADMIN})} – posiada pełne uprawnienia, w tym zarządzanie użytkownikami i zawartością platformy (np. dodawanie/usuwanie kursów, przypisywanie nauczycieli do kursów) oraz dostęp do panelu statystyk aplikacji.
+\end{itemize} Mechanizm uwierzytelniania został oparty na sesjach HTTP zarządzanych przez Spring Session z użyciem Hazelcast. Integracja Spring Session z Hazelcast powoduje replikację atrybutów sesji między węzłami, więc użytkownik może kontynuować pracę niezależnie od tego, która instancja obsłuży żądanie \cite{hazelcast-docs}, co umożliwia skalowanie aplikacji (sesje mogą być współdzielone między węzłami klastru) oraz dodatkowe zabezpieczenie przed utratą sesji (dane sesji mogą być replikowane dzięki mechanizmom Hazelcast) \cite{microservices}. \subsection{Kontrolery MVC i warstwa serwisów} Kontrolery (ang. \emph{controllers}) to komponenty Spring MVC obsługujące przychodzące żądania HTTP i generujące odpowiedzi, zazwyczaj w postaci nazw widoków HTML lub przekierowań. Każdy kontroler jest oznaczony adnotacją \texttt{@Controller} i może obsługiwać określony segment URL (np. kontrolery panelu administratora obsługują ścieżki \texttt{/admin/...}). W kontrolerach następuje pobranie danych z warstwy logiki (serwisów lub repozytoriów) i przekazanie ich do szablonów Thymeleaf poprzez obiekt \texttt{Model}. Dla utrzymania czytelności i separacji logiki, kontrolery delegują bardziej złożone operacje biznesowe do warstwy serwisów (o ile taka warstwa jest przewidziana dla danej funkcjonalności) \cite{microservices}. Prostsze operacje, takie jak zapisy lub odczyty danych, mogą być wykonywane bezpośrednio z wykorzystaniem repozytoriów. Przykładowy fragment implementacji kontrolera prezentuje metodę obsługującą żądanie GET wyświetlenia listy lekcji dla danego kursu. Kontroler pobiera identyfikator kursu z URL, zleca warstwie logiki pobranie odpowiednich danych i zwraca nazwę widoku: \begin{lstlisting}[language=Java,
+  caption={Widok listy lekcji. Źródło: opracowanie własne},
+  label={lst:view-lessons},
+  captionpos=b]
+@GetMapping("/classes/{classId}/lessons")
+public String viewLessons(@PathVariable Long classId, Model model) {
+List<Lesson> lessons = lessonService.getLessonsForClass(classId);
+model.addAttribute("lessons", lessons);
+return "lessons"; // zwraca widok listy lekcji
 }
-\end{lstlisting}
+\end{lstlisting} W powyższym przykładzie kontroler wywołuje metodę serwisu \texttt{lessonService}, która zwraca listę lekcji należących do kursu o podanym \texttt{classId}. Następnie lista lekcji jest dodawana do modelu, dzięki czemu warstwa widoku może ją wyświetlić użytkownikowi. W implementacji projektu niektóre kontrolery komunikują się bezpośrednio z bazą danych (np. zapisy nowego użytkownika czy pobranie listy klas), jednak ogólna zasada separacji odpowiedzialności jest zachowana logika biznesowa jest skupiona w dedykowanych komponentach, co ułatwia testowanie i rozwój aplikacji \cite{microservices}. Serwisy (\texttt{@Service}) realizują operacje biznesowe, które mogą obejmować transakcje na wielu obiektach domenowych lub wywołania do kilku repozytoriów. Przykładowo, serwis statystyk (\texttt{StatsService}) oblicza aktualne statystyki działania aplikacji (liczbę użytkowników, postów, komentarzy itp.) na podstawie danych w repozytoriach i aktualizuje obiekt zbiorczy statystyk. Innym przykładem jest serwis użytkowników (\texttt{UserService}), który dostarcza logikę sprawdzającą dostępność nazwy użytkownika czy adresu email (z wykorzystaniem mechanizmu cache’owania wyników za pomocą adnotacji \texttt{@Cacheable}). Dzięki wprowadzeniu warstwy serwisowej, logika aplikacji jest lepiej zorganizowana, a kontrolery, skupiają się głównie na obsłudze protokołu HTTP i przepływu danych między widokiem a backendem. \subsection{Repozytoria danych i Hazelcast jako baza danych w pamięci} W projekcie zrezygnowano z tradycyjnej relacyjnej bazy danych na rzecz rozproszonej bazy w pamięci. Zamiast zapisywać dane w systemie takim jak PostgreSQL czy MySQL, wszystkie dane aplikacji są przechowywane w strukturach oferowanych przez Hazelcast – rozproszonej mapie (\texttt{IMap}) trzymanej w pamięci RAM. Hazelcast pełni rolę magazynu danych klucz-wartość, w którym kluczem jest zwykle identyfikator obiektu (np. \texttt{Long id}), a wartością – obiekt domenowy (np. instancja klasy \texttt{User}, \texttt{Post}, \texttt{Lesson} itp.). Takie podejście znacząco zwiększa wydajność odczytu i zapisu danych (brak operacji dyskowych podczas działania aplikacji) oraz upraszcza infrastrukturę (brak osobnego serwera bazy danych do zarządzania). Należy jednak zauważyć, że dane przechowywane w pamięci ulotnej nie są domyślnie trwałe, po zatrzymaniu aplikacji lub awarii węzłów klastru, zawartość map Hazelcast zanika, o ile nie zastosowano mechanizmów trwałości (persistencji) Hazelcast. W kontekście tej pracy dyplomowej skupiono się na funkcjonalności i wydajności, akceptując ograniczenie polegające na braku trwałego magazynu danych (co zostanie omówione w \textbf{Rozdziale 6}). Implementacja warstwy dostępu do danych (DAO) w Hazelcast została zrealizowana przez własne klasy repozytoriów oznaczone adnotacją \texttt{@Repository}. Każda klasa repozytorium odpowiada za operacje CRUD (ang. \emph{Create, Read, Update, Delete}) dla określonego typu obiektu. Przykładowo, klasa \texttt{UserRepository} zarządza użytkownikami, \texttt{PostRepository} – postami, \texttt{LessonRepository} – lekcjami itd. W konstruktorze repozytorium wstrzykiwana jest instancja \texttt{HazelcastInstance}, z której pobierana jest odpowiednia mapa (\texttt{hz.getMap("nazwaMapy")}) oraz generator unikalnych identyfikatorów \texttt{FlakeIdGenerator}. Do generowania identyfikatorów wykorzystano rozproszony mechanizm Hazelcast (flake ID), który zapewnia unikalność w całym klastrze bez ryzyka kolizji \cite{hazelcast-docs}. Dzięki temu każdy nowo tworzony obiekt może otrzymać ID bez potrzeby korzystania z sekwencji bazy danych. Poniżej przedstawiono fragment implementacji repozytorium użytkowników, ilustrujący integrację z Hazelcast: \begin{lstlisting}[language=Java,
+  caption={fragment repozytorium użytkowników. Źródło: opracowanie własne},
+  label={lst:UserRepo},
+  captionpos=b]
+@Repository
+public class UserRepository {
+private final IMap<Long, User> map;
+private final FlakeIdGenerator idGenerator;
+public UserRepository(HazelcastInstance hz) {
+this.map = hz.getMap("users");
+this.idGenerator = hz.getFlakeIdGenerator("users_id_seq");
+}
+public User create(User template) {
+long id = idGenerator.newId();
+template.setId(id);
+map.put(id, template);
+return template;
+}
+// ... (metody findById, findByUsername, save, delete itp.)
+}
+\end{lstlisting} 
+Jak widać, repozytorium \texttt{UserRepository} uzyskuje dostęp do mapy o nazwie
+\texttt{"users"} i przechowuje w niej obiekty \texttt{User}, używając typu
+\texttt{Long} jako klucza (ID użytkownika). Metoda \texttt{create} generuje nowy
+identyfikator za pomocą \texttt{FlakeIdGenerator} i zapisuje obiekt do mapy.
+Analogiczne wzorce zastosowano w innych repozytoriach. Hazelcast umożliwia również
+tworzenie indeksów na polach obiektów przechowywanych w mapach, co zwiększa
+efektywność wykonywania zapytań. W pliku konfiguracyjnym \texttt{hazelcast.xml}
+zdefiniowano indeksy dla często używanych pól, np. \texttt{schoolClassId}
+w mapie \texttt{"lessons"} czy \texttt{userId} w mapie
+\texttt{"class\_signups"}. Dzięki temu operacje wyszukujące (np.
+\texttt{findBySchoolClassId(...)} w \texttt{LessonRepository} czy
+\texttt{findByUserId(...)} w \texttt{ClassSignUpRepository}) mogą być wykonywane
+szybciej, bez pełnego skanowania bazy danych.
 
-Wykorzystanie mechanizmów \texttt{Mockito} pozwoliło na izolację testowanych metod od zewnętrznych zależności.
+\subsection{Zadania cykliczne w aplikacji}
 
-\section{Testy integracyjne}
+Aplikacja wykorzystuje zadania cykliczne uruchamiane przez mechanizm
+planera Spring (\texttt{@Scheduled}) do wykonywania pewnych operacji w tle
+w określonych odstępach czasu. Jednym z kluczowych zadań cyklicznych jest
+aktualizowanie statystyk aplikacji. W regularnych odstępach (co 30 sekund)
+serwis statystyk pobiera bieżące dane z różnych repozytoriów (m.in. liczbę
+zarejestrowanych użytkowników, liczbę nauczycieli, liczbę postów i komentarzy)
+i zapisuje te informacje w mapie statystyk. Dzięki temu administrator ma dostęp
+do aktualnych informacji o stanie platformy bez konieczności ręcznego
+odświeżania danych. Implementację takiego zadania przedstawia klasa
+\texttt{StatisticsUpdater}:
+\begin{lstlisting}[language=Java,
+  caption={kod aktualizowania statystyk. Źródło: opracowanie własne},
+  label={lst:statisticUpdater},
+  captionpos=b]
+// StatisticsUpdater.java
+@Component
+public class StatisticsUpdater {
 
-Testy integracyjne przeprowadzono z wykorzystaniem frameworka Spring Boot oraz wbudowanej bazy danych H2. Głównym celem było sprawdzenie poprawności współpracy różnych warstw aplikacji.
-
-Do realizacji tych testów wykorzystano:
-
-\begin{itemize}
-    \item \texttt{TestRestTemplate} – do symulacji pełnych zapytań HTTP i sprawdzania zwracanych odpowiedzi.
-    \item Spring Test – zapewniający kompleksową konfigurację środowiska testowego.
-\end{itemize}
-
-\subsection{Przykład testu integracyjnego}
-
-Poniżej przedstawiono przykład testu integracyjnego sprawdzającego poprawność działania strony głównej aplikacji:
-
-\begin{lstlisting}[language=Java]
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ApplicationIntegrationTests {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Test
-    void shouldLoadHomePageSuccessfully() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().contains("Educational Materials Sharing Platform"));
+    @Scheduled(fixedRate = 30000)
+    public void updateStats() {
+        long userCount = userRepository.count();
+        long teacherCount = teacherRepository.count();
+        long postCount = postRepository.count();
+        long commentCount = commentRepository.count();
+        statsMap.put("users", userCount);
+        statsMap.put("teachers", teacherCount);
+        statsMap.put("posts", postCount);
+        statsMap.put("comments", commentCount);
     }
 }
+@Autowired
+private StatsService statsService;
+@Scheduled(cron = "*/30 * * * * *")
+public void updateStats() {
+statsService.updateStatistics();
+}
+}
+\end{lstlisting} Powyższa klasa opatrzona adnotacją \texttt{@Component} jest wykrywana przez Spring jako składnik zarządzany, a metoda \texttt{updateStats()} oznaczona \texttt{@Scheduled} będzie automatycznie uruchamiana co 30 sekund (parametr cron \texttt{*/30 * * * * *} oznacza wykonanie zadania co 30 sekund każdej minuty). Wewnątrz metoda korzysta z \texttt{StatsService} do przeliczenia i zapisania statystyk. Drugim istotnym procesem działającym w tle jest obsługa zgłoszeń rejestracyjnych do kursów. Ponieważ studenci mogą zapisywać się na zajęcia (kursy) otwarte w systemie, przyjęto założenie, że niektóre kursy mogą wymagać akceptacji (np. przez prowadzącego) przed dołączeniem studenta. W klasie \texttt{SignUpDeadlineProcessor} zaimplementowano zadanie sprawdzające zgłoszenia o statusie „PENDING” (oczekujące) i pilnujące terminów. Jeżeli dany kurs ma ustawioną datę zamknięcia zapisów (\texttt{signupDeadline}) i termin ten minął, wszystkie niezaakceptowane zgłoszenia zostają automatycznie oznaczone jako „REJECTED” (odrzucone) i nie będą już widoczne jako aktywne. Mechanizm ten, uruchamiany co minutę, zapobiega sytuacji, w której przeterminowane prośby o dołączenie do kursu pozostawałyby w systemie w nieskończoność. Dzięki takiemu mechanizmowi dane w aplikacji zachowują aktualność, a listy uczestników kursów odzwierciedlają rzeczywistość (pozostają tylko zaakceptowani studenci). Aplikacja sama dba o aktualizację pewnych informacji i porządkowanie stanu, co zmniejsza obciążenie administratora oraz ryzyko błędów użytkowników. \section{Warstwa frontendu i interfejs użytkownika} Warstwa frontendu została zbudowana w oparciu o technologię szablonów serwerowych Thymeleaf oraz bibliotekę Bootstrap. Aplikacja stosuje model MVC, gdzie kontrolery przekazują dane do widoków renderowanych po stronie serwera. Dzięki Thymeleaf, integracja warstwy prezentacji z backendem jest płynna  szablony HTML mogą bezpośrednio odwoływać się do obiektów modelu przekazanych przez kontroler, używając zastawek \texttt{th:} (np. \texttt{th:text} do wstawienia tekstu, \texttt{th:each} do iteracji po kolekcjach itp.).
+
+
+
+Thymeleaf oferuje przejrzystą integrację ze Spring Boot — wystarczy umieścić pliki szablonów w katalogu \texttt{src/main/resources/templates}, a Spring Boot automatycznie konfiguruje silnik szablonów \cite{spring-docs,thymeleaf-docs}. W projekcie zastosowano renderowanie po stronie serwera (SSR): większość widoków generowana jest na serwerze i dostosowywana do urządzeń mobilnych z użyciem Bootstrap \cite{bootstrap-docs}. Thymeleaf umożliwia korzystanie z fragmentów i szablonów bazowych; wspólny nagłówek i stopka z pliku \texttt{common.html} są wstawiane dyrektywą \texttt{th:replace}, co ogranicza duplikację kodu HTML i ułatwia utrzymanie spójnego wyglądu \cite{thymeleaf-docs}. Na przykład wiele widoków wstawia fragment paska nawigacyjnego na początku elementu \texttt{<body>} przy pomocy \texttt{th:replace} \cite{thymeleaf-docs}.
+
+\begin{lstlisting}[language=HTML,
+  caption={Fragment szablonu Thymeleaf z wstawieniem paska nawigacji. Źródło: opracowanie własne},
+  label={lst:thymeleaf-navbar},
+  captionpos=b]
+<div th:replace="~{common :: navbar(loggedIn=${loggedIn}, isAdmin=${isAdmin})}"></div>
 \end{lstlisting}
 
-Testy integracyjne potwierdziły poprawne współdziałanie komponentów aplikacji.
+W powyższym kodzie Thymeleaf wstawia fragment \texttt{navbar} – metoda
+fragmentu przyjmuje parametry (np. czy użytkownik jest zalogowany lub
+administratorem), co pozwala dynamicznie dostosować menu.
 
-\section{Baza danych testowa (H2)}
+\subsection{Wykorzystanie komponentów Bootstrap}
 
-W trakcie realizacji testów wykorzystano bazę danych H2 działającą w pamięci, która umożliwiła szybkie i bezpieczne wykonywanie operacji CRUD, bez ingerencji w dane produkcyjne. Baza ta została również użyta do przechowywania sesji użytkowników oraz tymczasowych statystyk aplikacji. 
+Do stylowania i responsywnego układu użyto Bootstrap 5 wraz z własnymi
+arkuszami CSS (\texttt{darkMode.css}, \texttt{adminDashboard.css}). Dzięki
+gridowi Bootstrapa elementy (np. \textit{cards}) automatycznie zmieniają
+układ na desktopie i urządzeniach mobilnych. Dodatkowo front-end wzbogacono
+o skrypty JavaScript, np. \texttt{signUpValidation.js} (walidacja formularza
+po stronie klienta) oraz \texttt{darkMode.js} (przełącznik trybu
+jasnego/ciemnego). W panelu administratora do wizualizacji statystyk
+użyto Chart.js (wykres słupkowy kluczowych metryk).
 
-Przykładowa konfiguracja użytej bazy danych:
+\subsection{Zarządzanie danymi i konfiguracja Hazelcast}
 
-\begin{lstlisting}[language=properties]
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-\end{lstlisting}
+Jak wspomniano, w projekcie wykorzystano Hazelcast zamiast tradycyjnej
+bazy relacyjnej. Konfiguracja znajduje się w pliku \texttt{hazelcast.xml}
+(z ustawieniami sieci, mapami
+\texttt{users}, \texttt{posts}, \texttt{class\_signups} itp., z
+\texttt{backup-count=1}). Dodatkowo wydzielono mapę sesji
+\texttt{spring:session:sessions} (TTL30min, LRU>10000 sesji).
 
-\section{Testy wydajnościowe}
-
-Do oceny wydajności aplikacji przeprowadzono podstawowe testy wydajnościowe, które polegały na symulacji dużego obciążenia generowanego przez jednoczesne zapytania użytkowników. Wyniki wykazały stabilność aplikacji pod obciążeniem oraz akceptowalne czasy odpowiedzi.
-
-Testy przeprowadzono przy użyciu narzędzi takich jak Apache JMeter. Przykładowe parametry testu:
-
+% pusty wiersz przed \begin{itemize}
 \begin{itemize}
-    \item Liczba jednoczesnych użytkowników: 100.
-    \item Czas trwania testu: 10 minut.
-    \item Średni czas odpowiedzi aplikacji: poniżej 300ms.
+  \item Aplikacja nie wymaga osobnego serwera bazy danych – wystarczy
+    Spring Boot z wbudowanym Hazelcast.
+  \item Wysoka wydajność CRUD – wszystko w pamięci, brak operacji dyskowych.
+  \item Ograniczona trwałość danych – bez persistence domyślnie stan
+    restartuje się od zera.
+  \item Mniej skomplikowany model – brak ORM i SQL, operujemy kolekcjami
+    Java w \texttt{IMap}.
 \end{itemize}
 
-Wnioski z testów pokazały, że aplikacja działa wydajnie i jest zdolna obsłużyć przewidywaną liczbę użytkowników.
-
-\section{Podsumowanie wyników testów}
-
-Przeprowadzone testy jednostkowe i integracyjne potwierdziły poprawność działania aplikacji oraz jej zgodność z założonymi wymaganiami funkcjonalnymi. Testy wydajnościowe dodatkowo potwierdziły stabilność aplikacji przy dużym obciążeniu, co umożliwia jej efektywne wdrożenie w środowisku edukacyjnym.
+Podsumowując, zastosowanie Hazelcast zdeterminowało całą architekturę
+wszystkie warstwy zoptymalizowano pod kątem pracy w pamięci.

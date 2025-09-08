@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast xmlns="http://www.hazelcast.com/schema/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-5.5.xsd">
+  <cluster-name>demo-cluster</cluster-name>
+  <network>
+    <join>
+      <multicast enabled="false"/>
+      <tcp-ip enabled="true">
+        <member>127.0.0.1:5701</member>
+        <member>127.0.0.1:5702</member>
+        <member>127.0.0.1:5703</member>
+      </tcp-ip>
+    </join>
+    <port auto-increment="true">5701</port>
+  </network>
+  <map name="posts"><backup-count>1</backup-count></map>
+  <map name="users"><backup-count>1</backup-count></map>
+  <map name="spring:session:sessions"><backup-count>1</backup-count></map>
+  <management-center enabled="true">http://localhost:8081/hazelcast-mancenter</management-center>
+</hazelcast>

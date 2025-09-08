@@ -5,6 +5,7 @@ import com.example.demo.persistent.repository.PostRepository;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,10 +39,11 @@ public class AdminPostController {
     public String addPost(@RequestParam String title,
                           @RequestParam String content,
                           @RequestParam(value="thumbnailFile", required=false) MultipartFile thumbnailFile,
-                          @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+                          @RequestParam(value = "file", required = false) MultipartFile file, Principal principal) throws IOException {
         Post post = new Post();
         post.setTitle(title);
         post.setContent(content);
+        post.setAuthor(principal != null ? principal.getName() : "admin");
 
         if (file != null && !file.isEmpty()) {
             try {

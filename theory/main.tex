@@ -15,10 +15,22 @@
 %----------------------------------------------------------------------------------------
 %	PAKIETY ORAZ PLIKI ZAWIERAJĄCE DEFINICJE STYLI I KONFIGURACJĘ OTOCZEŃ LATEX
 %----------------------------------------------------------------------------------------
-
 \documentclass[12pt,fleqn,twoside]{book} % JK Rozmiary czcionek są zgodne z wymaganiami uczelni 
 % UWAGA! - wydruk jest dwustronny i jest to zabieg zamierzony
-
+% (removed duplicate) biblatex is loaded in structure.tex
+\usepackage{graphicx} 
+\usepackage{float} 
+\usepackage{plantuml} 
+\usepackage{listings}          % do wyświetlania kodu
+\lstset{                       % ustawienia dla listings
+  basicstyle=\ttfamily\small,
+  language=Java,
+  frame=single,
+  breaklines=true
+}
+\usepackage[utf8]{inputenc}   % kodowanie UTF-8
+\usepackage[T1]{fontenc}      % poprawne łamanie słów, polskie znaki
+\usepackage[polish]{babel} 
 % \usepackage{fix-cm} % Zapewnienie, że wszystkie rozmiary czcionek są dostępne
 
 \input{structure.tex} % JK - Plik zawierający podstawowe elementy konfigurujące układ dokumentu
@@ -99,6 +111,8 @@
 %----------------------------------------------------------------------------------------
 \include{Dyplom-styl/chapter6} % chapter6.tex zawiera treść rozdziału 6
 
+\include{Dyplom-styl/chapter7}
+
 %----------------------------------------------------------------------------------------
 %	ROZDZIAŁy kolejne należy dodać analogicznie do 1 i 2 
 % utworzyć pliki i je załączyć (include)
@@ -107,48 +121,40 @@
 %----------------------------------------------------------------------------------------
 %	ZAKOŃCZENIE PRACY DYPLOMOWEJ (JK - design and implementation)
 %----------------------------------------------------------------------------------------
-\addcontentsline{toc}{chapter}{Podsumowanie}
-\include{conclusions} % conclusions.tex zawiera treść zakończenia/podsumowania pracy dyplomowej
+\addcontentsline{toc}{chapter}{Spis Literatury}
+
 
 
 %----------------------------------------------------------------------------------------
 %	SPIS LITERATURY (JK - design and implementation)
 %----------------------------------------------------------------------------------------
-\pagestyle{empty} 
-\chapter*{Spis literatury}
-\addcontentsline{toc}{chapter}{\textcolor{blueZUT}{Spis literatury}}
+% \pagestyle{empty} 
+% \chapter*{Spis literatury}
+% \addcontentsline{toc}{chapter}{\textcolor{blueZUT}%
 % Poniżej zdefiniowane są filtry do dzielenia spisu literatury na kategorie
-\defbibfilter{articles}{
-  type=article or 
-  type=inproceedings
-}
-\defbibfilter{other}{
-  type=url or
-  type=online  or
-  type=manual or
-  type=misc
-}
+% % (removed broken bib filters)
+% % (removed broken bib filters)
 
 % UWAGA! -aby zmienić zawartość spisu literatury należy wyedytować plik
-% bibliography.bib
+
 
 %------------------------------------------------
 % Spis literartury podzielony jest na 3 kategorie
 % 1
-\section*{Książki}
-\addcontentsline{toc}{section}{Książki}
-\printbibliography[heading=bibempty,type=book]
+% \section*{Książki}
+% \addcontentsline{toc}{section}{Książki}
+%% (removed include of bibliography.tex; using biblatex\printbibliography)
 
 %------------------------------------------------
 % 2
-\section*{Artykuły}
-\addcontentsline{toc}{section}{Artykuły}
-\printbibliography[heading=bibempty,filter=articles]
+% \section*{Artykuły}
+% \addcontentsline{toc}{section}{Artykuły}
+% \printbibliography[heading=bibempty,filter=articles]
 %------------------------------------------------
 % 3
-\section*{Źródła internetowe i inne}
-\addcontentsline{toc}{section}{Źródła internetowe i inne}
-\printbibliography[heading=bibempty,filter=other]
+% \section*{Źródła internetowe i inne}
+% \addcontentsline{toc}{section}{Źródła internetowe i inne}
+\printbibliography
 
 
 %----------------------------------------------------------------------------------------

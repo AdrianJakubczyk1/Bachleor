@@ -5,35 +5,40 @@
     <title>Manage Classes</title>
     <link rel="stylesheet" th:href="@{/css/darkMode.css}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/darkMode.css}" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 bg-dark text-light">
 <!-- Include common navbar fragment -->
 <div th:replace="~{common :: navbar(loggedIn=${loggedIn}, isAdmin=${isAdmin}, title=${title})}"></div>
-
+<div class="d-flex justify-content-end mb-3">
+    <a class="btn btn-outline-light" th:href="@{/admin}">&larr; Back to Admin Panel</a>
+</div>
 <div class="container mt-5">
     <h2>Manage Classes</h2>
     <a href="/admin/classes/new" class="btn btn-primary mb-3">Add New Class</a>
-    <table class="table table-bordered">
+    <table class="align-middle border-secondary table table-bordered table-dark table-striped">
         <thead>
         <tr>
-            <th>ID</th>
+            <th>#</th>
             <th>Class Name</th>
-            <th>Description</th>
+            <th>Assigned Teacher</th>
             <th>Actions</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="cls : ${classes}">
-            <td th:text="${cls.id}"></td>
+        <tr th:each="cls, iterStat : ${classes}">
+            <td th:text="${iterStat.index + 1}"></td>
             <td th:text="${cls.name}"></td>
-            <td th:text="${cls.description}"></td>
+            <td>
+                <span th:if="${cls.teacherId != null}" th:text="${teacherNames[cls.teacherId] != null ? teacherNames[cls.teacherId] : '—'}"></span>
+                <span th:if="${cls.teacherId == null}">—</span>
+            </td>
             <td>
                 <a th:href="@{'/admin/classes/' + ${cls.id} + '/edit'}" class="btn btn-sm btn-warning">Edit</a>
                 <form th:action="@{'/admin/classes/' + ${cls.id} + '/delete'}" method="post" style="display: inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
                 </form>
-                <!-- Link to manage lessons for the class -->
                 <a th:href="@{'/admin/classes/' + ${cls.id} + '/lessons'}" class="btn btn-sm btn-info">Manage Lessons</a>
             </td>
         </tr>

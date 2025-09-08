@@ -1,149 +1,27 @@
-\chapter{Implementacja}
-
-Ten rozdział omawia szczegółowe aspekty implementacji platformy do udostępniania materiałów edukacyjnych, obejmujące konfigurację środowiska, logikę backendu, integrację frontendową oraz mechanizmy przechowywania danych użyte w projekcie.
-
-\section{Konfiguracja środowiska}
-
-Środowisko deweloperskie zostało przygotowane przez dobór odpowiednich narzędzi, frameworków oraz technologii, które umożliwiają szybkie tworzenie aplikacji, wysoką produktywność oraz solidną architekturę systemu. W projekcie wykorzystano następujące narzędzia i technologie:
-
+\chapter{Prezentacja działania aplikacji} W tym rozdziale zaprezentowano praktyczne działanie stworzonej aplikacji edukacyjnej z perspektywy użytkownika. Omówiono interfejs użytkownika oraz realizację kluczowych scenariuszy użycia systemu, takich jak rejestracja i logowanie, zapisywanie się na zajęcia, publikowanie materiałów, przesyłanie rozwiązań zadań czy wystawianie ocen i komentarzy. Ponadto przedstawiono funkcje administracyjne, w tym przegląd statystyk działania aplikacji. \section{Interfejs użytkownika} Interfejs użytkownika aplikacji został zaprojektowany z myślą o przejrzystości i intuicyjności. Do interfejsu wykorzystano bibliotekę Bootstrap, najpopularniejszy framework front-endowy (framework CSS/JS), który zapewnia responsywność i nowoczesny wygląd stron przy jednoczesnym ograniczeniu konieczności pisania dużej ilości własnego CSSu. Widoki HTML są generowane po stronie serwera za pomocą silnika szablonów Thymeleaf. Pozwala to łatwo wstrzykiwać dane serwera do widoków i wiązać interfejs użytkownika z logiką backendu \cite{thymeleaf-docs}. Najważniejsze widoki aplikacji to: \begin{itemize}
+\item \textbf{Strona główna} – punkt startowy dla wszystkich użytkowników. Zawiera listę dostępnych kursów i najnowszych materiałów edukacyjnych opublikowanych na platformie. Na górze strony umieszczono pole wyszukiwania umożliwiające odnalezienie materiałów po słowach kluczowych (np. tytule lub opisie). Widoczne są również przyciski nawigacyjne do logowania i rejestracji (dla nowych użytkowników). Każdy kurs wyświetlany jest jako kafelek z nazwą przedmiotu i krótkim opisem, kliknięcie przenosi do szczegółów kursu.
+\item \textbf{Widok kursu i lekcji} – po wybraniu konkretnego kursu (przedmiotu) student może zobaczyć jego szczegóły: listę lekcji (tematów) dostępnych w ramach kursu, informacje o prowadzącym (nauczycielu) oraz przycisk do zapisania się na kurs, jeśli użytkownik jeszcze nie jest uczestnikiem. Lekcje w ramach kursu są wyświetlane jako lista użytkownik może wybrać lekcję, aby zapoznać się z jej treścią.
+\item \textbf{Widok materiału edukacyjnego (lekcji lub postu)} – prezentuje pełną treść materiału, np. zawartość lekcji lub posta dodanego przez nauczyciela. Oprócz treści (tekst, ewentualnie dołączony plik do pobrania, np. prezentacja lub PDF), widok ten zawiera sekcję komentarzy użytkowników oraz ocenę materiału. Studenci mogą dodawać komentarze, a zarówno studenci, jak i nauczyciele mogą oceniać materiał w skali 1-10.
+\item \textbf{Panel użytkownika (Student)} – po zalogowaniu student otrzymuje dostęp do swojego panelu, gdzie może zarządzać uczestnictwem w kursach. W panelu użytkownika wyświetlane są m.in. lista kursów, na które użytkownik się zapisał (wraz z informacją o statusie zapisu oczekujący lub zaakceptowany), a także sekcja do przeglądania ocen otrzymanych za rozwiązania zadań.
+Użytkownik może również w panelu zmienić swoje dane podane przy rejestracji.
+\item \textbf{Panel nauczyciela} – nauczyciel po zalogowaniu widzi dedykowany panel z funkcjami dla prowadzących. Może tam zarządzać przydzielonymi mu kursami (przegląda listę swoich klas/kursów), dodawać nowe lekcje i zadania, a także przeglądać zadania przesłane przez studentów. W panelu nauczyciela znajduje się np. widok listy nadesłanych rozwiązań zadań, które oczekują na ocenę.
+\item \textbf{Panel administracyjny} – dostępny wyłącznie dla użytkownika z rolą Administrator. Umożliwia on globalne zarządzanie systemem: listą wszystkich użytkowników (np. nadawanie roli nauczyciela wybranym użytkownikom, blokowanie użytkowników, itp.), listą wszystkich kursów (dodawanie lub usuwanie kursów, przypisywanie nauczycieli do kursów), a także przegląd opublikowanych materiałów (postów) w całym serwisie. Dodatkowo panel admina zawiera sekcję statystyk prezentującą dane o aktywności na platformie.
+\end{itemize} Całość interfejsu jest spójna i utrzymana w ciemnym kolorze(tzw. \textit{dark mode} domyślnie włączony, z możliwością przełączenia na tryb jasny). Dzięki zastosowaniu dobrze znanych bibliotek i wzorców projektowych (Bootstrap, układ kart i list, ikony z biblioteki FontAwesome itp.), użytkownicy mogą łatwo odnaleźć potrzebne funkcje \cite{bootstrap-docs}. \section{Rejestracja i logowanie użytkowników} Proces rejestracji nowego użytkownika jest prosty i intuicyjny. Po wybraniu opcji "Register" użytkownik zostaje przekierowany do formularza rejestracji. Formularz wymaga podania podstawowych danych: nazwy użytkownika (loginu), hasła (dwukrotnie w celu weryfikacji), adresu e-mail oraz opcjonalnie imienia i nazwiska. Wszystkie pola są walidowane – zarówno po stronie przeglądarki (np. sprawdzenie minimalnej długości hasła, poprawności formatu email), jak i po stronie serwera (sprawdzenie unikalności nazwy użytkownika i adresu email w bazie). W przypadku niespełnienia wymagań walidowanych pól, użytkownik jest informowany odpowiednim komunikatem (np. "Nazwa użytkownika jest już zajęta" lub "Adres email jest już używany"). Po pomyślnym wypełnieniu formularza i jego wysłaniu, nowy użytkownik zostaje zapisany w systemie. Hasło użytkownika jest przechowywane w postaci haszu (z użyciem algorytmu BCrypt), co jest praktyką zalecaną przez Spring Security \cite{spring-security-in-action-2e}
+. Dzięki jednokierunkowemu haszowaniu hasła nie są zapisywane jawnie i administrator nie ma dostępu do oryginalnego hasła. Rejestracja kończy się przekierowaniem do strony logowania z komunikatem o powodzeniu procesu (np. "Konto zostało utworzone."). Logowanie odbywa się poprzez dedykowaną stronę \texttt{/login}, gdzie użytkownik podaje swój login oraz hasło. Po poprawnym zalogowaniu (weryfikowanym przez Spring Security w oparciu o dane zapisane w Hazelcast) następuje przekierowanie na stronę główną z informacją powitalną. Od tego momentu w nawigacji widoczne są dodatkowe opcje w zależności od roli  np. dla nauczyciela link do panelu nauczyciela, dla admina link do panelu administracyjnego. Moduł logowania wykorzystuje Spring Security i wdraża rekomendowane zabezpieczenia, np. ograniczenie liczby prób logowania, aby utrudnić ataki typu brute-force \cite{spring-security-in-action-2e}, oraz unieważnianie sesji przy wylogowaniu i po dłuższej bezczynności. Dzięki temu system zabezpieczeń jest zgodny z ogólnie przyjętymi standardami. \section{Publikowanie i zarządzanie materiałami edukacyjnymi} Po zalogowaniu użytkownicy z odpowiednimi rolami mogą tworzyć i zarządzać zawartością edukacyjną na platformie. Przykładowo, nauczyciel (lub administrator) może dodawać nowe posty edukacyjne lub lekcje w ramach swoich kursów. Proces ten zazwyczaj przebiega według schematu: \begin{itemize}
+\item Wybranie opcji \textbf{"Add post"} – w panelu nauczyciela dostępna jest zakładka umożliwiająca utworzenie nowego posta (materiału edukacyjnego) bądź nowej lekcji w ramach kursu.
+\item \textbf{Wypełnienie formularza dodawania materiału} – nauczyciel wpisuje tytuł materiału, treść (np. opis lekcji lub artykuł edukacyjny). Formularz pozwala także na dołączenie pliku (np. dodatkowych materiałów PDF, prezentacji, arkuszy ćwiczeń). W projekcie obsługiwane jest dodawanie jednego pliku do materiału – plik ten jest zapisywany w systemie (w pamięci jako tablica bajtów) i może być później pobrany przez studentów.
+\item \textbf{Zapisanie materiału} – po zatwierdzeniu formularza materiał zostaje zapisany poprzez odpowiedni kontroler (np. \texttt{AdminPostController} lub \texttt{TeacherPostController}) do repozytorium (\texttt{PostRepository} lub \texttt{LessonRepository}). Nowo utworzony obiekt otrzymuje unikalne ID, a ewentualny plik jest składowany we właściwościach obiektu (np. \texttt{attachment} i \texttt{attachmentFilename} w przypadku postu).
+\item \textbf{Publikacja} – zapisany materiał staje się od razu dostępny na platformie. Posty mogą pojawić się na liście wszystkich materiałów widocznych na stronie głównej lub w odpowiedniej sekcji, zaś lekcja będzie widoczna w ramach danego kursu (dla studentów zapisanych na ten kurs lub dla wszystkich, jeśli kurs jest otwarty).
+\item \textbf{Edycja i usuwanie} – nauczyciel lub administrator może w każdej chwili edytować zawartość istniejącego materiału (zmienić treść, podmienić załącznik) lub go usunąć, jeśli uzna, że jest nieaktualny lub niepoprawny. W aplikacji zaimplementowano widoki listy materiałów z akcjami "Edytuj" i "Usuń" przy każdym wpisie, dostępne dla uprawnionych użytkowników.
+\end{itemize} Dzięki tym funkcjonalnościom platforma umożliwia dynamiczne dodawanie treści edukacyjnych przez kadrę nauczycielską. Studenci mają stały dostęp do aktualizowanych materiałów. Dodatkowo możliwość dołączenia plików czyni platformę elastyczną może służyć nie tylko do prezentowania tekstów, ale także udostępniania zadań domowych, artykułów naukowych, nagrań video lub innych zasobów. Ważnym elementem interaktywności jest system komentarzy i ocen. Każdy opublikowany materiał (np. post edukacyjny czy lekcja) może być oceniony oraz skomentowany przez społeczność użytkowników. Studenci mogą zadawać pytania lub dzielić się refleksjami w sekcji komentarzy pod materiałem, podczas gdy inni studenci i nauczyciele mogą te komentarze lajkować lub odpowiadać na nie. Oceny materiałów (realizowane w projekcie np. przez mechanizm \texttt{PostRating} lub \texttt{LessonRating}) pozwalają wyróżnić szczególnie wartościowe treści – średnia ocena lub liczba polubień może być wyświetlana obok tytułu materiału, dając nowym użytkownikom wskazówkę co do jakości. System ten zwiększa interaktywność platformy oraz motywuje autorów materiałów do utrzymania wysokiego poziomu merytorycznego. \section{Przeglądanie statystyk i funkcje administracyjne} Aplikacja udostępnia panel administracyjny zawierający najważniejsze statystyki dotyczące aktywności użytkowników i zawartości platformy. Panel statystyk jest dostępny tylko dla administratorów i stanowi pomocne narzędzie do monitorowania rozwoju aplikacji. Dane statystyczne są automatycznie aktualizowane w tle (zgodnie z opisem w poprzednim rozdziale) i prezentowane w przyjaznej formie graficznej. W panelu administracyjnym, na stronie głównej wyświetlane są m.in.: \begin{itemize}
+\item \textbf{Liczba zarejestrowanych użytkowników} – całkowita liczba kont użytkowników w systemie, z podziałem na role (np. ile z nich to nauczyciele, a ile studenci).
+\item \textbf{Liczba opublikowanych materiałów} – suma wszystkich postów edukacyjnych dodanych przez nauczycieli. Wskaźnik ten obrazuje skalę treści dostępnych na platformie.
+\item \textbf{Liczba komentarzy} – łączna liczba komentarzy dodanych pod wszystkimi materiałami. Wysoka liczba komentarzy może świadczyć o dużym zaangażowaniu społeczności w dyskusje.
+\item \textbf{Liczba zgłoszeń/zapisów} – administrator może również monitorować, ile zgłoszeń do kursów zostało złożonych (i ile oczekuje na akceptację). Ta statystyka pomaga śledzić popularność poszczególnych kursów.
+\end{itemize} Do rysowania wykresów słupkowych w panelu użyto biblioteki do wykresów HTML5 Chart.js
+, udostępnia gotowe typy wykresów (słupkowy, liniowy, kołowy itp.), co ułatwia wizualizację danych. Aplikacja przekazuje do widoku listy etykiet (np. \texttt{["postCount", "userCount", "teacherCount", "commentCount"]}) oraz odpowiadających im wartości, a skrypt \texttt{adminDashboard.js} renderuje na ich podstawie kolorowy wykres. Dzięki temu administrator otrzymuje przejrzysty obraz stanu systemu na pierwszy rzut oka może np. zauważyć dynamiczny przyrost liczby użytkowników czy też niewielką liczbę komentarzy (co może sugerować potrzebę zwiększenia interakcji). Poza statystykami, panel administracyjny zapewnia interfejs do zarządzania kluczowymi danymi:
 \begin{itemize}
-\item \textbf{Język programowania}: Java 21
-\item \textbf{Framework}: Spring Boot 3.x
-\item \textbf{Narzędzie do budowania aplikacji}: Apache Maven
-\item \textbf{IDE}: IntelliJ IDEA
-\item \textbf{Systemy bazodanowe}: PostgreSQL (dane trwałe) oraz H2 Database (w pamięci, używana do statystyk, testowania i zarządzania sesjami)
-\item \textbf{Technologie webowe}: Thymeleaf, Bootstrap 5.2, JavaScript
-\item \textbf{System kontroli wersji}: Git
-\end{itemize}
-
-Zależności zarządzane były za pomocą pliku \texttt{pom.xml} Maven, zapewniając prostą integrację bibliotek zewnętrznych, takich jak Spring Web, Spring Security, JDBC, Thymeleaf oraz frameworków testowych (JUnit, Mockito).
-
-\section{Rozwój backendu}
-
-Backend aplikacji opiera się na architekturze warstwowej, obejmującej kontrolery, serwisy, obiekty dostępu do danych (DAO) oraz repozytoria. Podejście to zapewnia wyraźny podział odpowiedzialności, łatwiejsze utrzymanie oraz testowalność.
-
-\subsection{Uwierzytelnianie i autoryzacja użytkowników}
-
-Uwierzytelnianie użytkowników oraz autoryzacja oparta na rolach zostały zrealizowane za pomocą Spring Security. Hasła są szyfrowane z wykorzystaniem algorytmu haszującego BCrypt, zwiększając bezpieczeństwo.
-
-Zaimplementowane role:
-
-\begin{itemize}
-\item \textbf{Student} – może przeglądać materiały oraz przesyłać rozwiązania.
-\item \textbf{Nauczyciel} – może dodawać materiały oraz oceniać przesłane rozwiązania.
-\item \textbf{Administrator} – zarządza użytkownikami oraz statystykami systemu.
-\end{itemize}
-
-Spring Security został skonfigurowany do zabezpieczenia URL na podstawie ról użytkowników, dostarcza również funkcjonalności logowania, wylogowania oraz zarządzania sesjami.
-
-\subsection{Kontrolery MVC i serwisy}
-
-Kontrolery zarządzają żądaniami oraz odpowiedziami HTTP według wzorca Spring MVC. Kontrolery delegują logikę biznesową do warstw serwisowych, co utrzymuje klarowny podział między obsługą żądań a operacjami biznesowymi.
-
-Przykład implementacji (fragment kontrolera):
-
-\begin{lstlisting}[language=Java]
-@GetMapping("/classes/{classId}/lessons")
-public String viewLessons(@PathVariable Long classId, Model model) {
-List lessons = lessonService.getLessonsForClass(classId);
-model.addAttribute("lessons", lessons);
-return "lessons";
-}
-\end{lstlisting}
-
-Serwisy realizują logikę transakcyjną oraz współpracują z repozytoriami i DAO, aby pobierać i manipulować danymi.
-
-\subsection{Repozytoria i DAO}
-
-Trwałe dane przechowywane są w bazie PostgreSQL, do której dostęp zapewniają repozytoria Spring Data JDBC. Dane tymczasowe, takie jak statystyki aplikacji oraz sesje użytkowników, obsługiwane są przez bazę H2 w pamięci, za pośrednictwem własnych implementacji DAO.
-
-Przykład implementacji DAO:
-
-\begin{lstlisting}[language=Java]
-@Repository
-public class StatsDaoImpl implements StatsDaoImplRepository {
-
-private final NamedParameterJdbcOperations jdbcOperations;
-
-@Autowired
-public StatsDaoImpl(@Qualifier("tempJdbcTemplate") NamedParameterJdbcOperations jdbcOperations) {
-    this.jdbcOperations = jdbcOperations;
-}
-
-public List<AppStatistic> findAllStats() {
-    String sql = "SELECT id, stat_name, stat_value, timestamp FROM app_statistics";
-    return jdbcOperations.query(sql, new BeanPropertyRowMapper<>(AppStatistic.class));
-}
-
-}
-\end{lstlisting}
-
-\subsection{Zadania cykliczne}
-
-Aplikacja wykorzystuje zadania cykliczne (za pomocą Spring Scheduler) do regularnego aktualizowania statystyk aplikacji, takich jak liczba postów, zarejestrowanych użytkowników oraz aktywność użytkowników. Statystyki te przechowywane są w bazie H2 i używane są do analiz administracyjnych.
-
-\begin{lstlisting}[language=Java]
-@Component
-public class StatisticsUpdater {
-
-@Autowired
-private StatsService statsService;
-
-@Scheduled(cron = "*/30 * * * * *")
-public void updateStats() {
-    statsService.updateStatistics();
-}
-
-}
-\end{lstlisting}
-
-\section{Rozwój frontendu}
-
-Frontend został zbudowany z użyciem szablonów Thymeleaf, umożliwiających dynamiczne renderowanie treści bezpośrednio z kontrolerów Spring MVC. Framework Bootstrap zapewnia responsywny oraz estetyczny interfejs użytkownika.
-
-\subsection{Integracja z Thymeleaf}
-
-Thymeleaf oferuje przejrzystą integrację ze Spring Boot, umożliwiając łatwe wiązanie danych i renderowanie danych po stronie serwera:
-
-Przykładowy fragment Thymeleaf:
-
-\begin{lstlisting}[language=HTML]
-
-\subsection{Wykorzystanie komponentów Bootstrap}
-
-Do stylowania wykorzystano Bootstrap 5, upraszczając obsługę CSS oraz zapewniając spójny design na różnych urządzeniach.
-
-\section{Zarządzanie przechowywaniem danych}
-
-W projekcie użyto dwóch baz danych:
-
-\begin{itemize}
-\item \textbf{PostgreSQL} – przechowuje dane trwałe, takie jak użytkownicy, posty, komentarze, lekcje oraz zadania.
-\item \textbf{H2 Database} – do przechowywania danych tymczasowych, danych sesji, statystyk aplikacji oraz celów testowych.
-\end{itemize}
-
-Baza H2 jest inicjalizowana podczas startu aplikacji za pomocą skryptów schematu oraz danych, co pozwala na szybkie testowanie bez wpływu na dane produkcyjne.
-
-Przykładowa konfiguracja bazy H2 w pliku \texttt{application.properties}:
-
-\begin{lstlisting}[language=properties]
-spring.datasource.temp.url=jdbc:h2:mem:tempdb;DB_CLOSE_DELAY=-1
-spring.datasource.temp.username=sa
-spring.datasource.temp.password=
-spring.datasource.temp.driver-class-name=org.h2.Driver
-\end{lstlisting}
-
-\section{Wyzwania implementacyjne i ich rozwiązania}
-
-Podczas implementacji pojawiło się kilka wyzwań, które rozwiązano następująco:
-
-\begin{itemize}
-\item \textbf{Spójność danych pomiędzy bazami PostgreSQL i H2} – rozwiązana przez jasne określenie odpowiedzialności każdej bazy.
-\item \textbf{Synchronizacja zadań cyklicznych} – rozwiązana poprzez właściwą konfigurację wyrażeń cron i izolację zadań.
-\item \textbf{Integracja backendu z frontendem} – rozwiązana przez dokładne wykorzystanie możliwości renderowania po stronie serwera Thymeleaf.
-\end{itemize}
-
-\section{Podsumowanie}
-
-Implementacja platformy do udostępniania materiałów edukacyjnych wykazała efektywne wykorzystanie nowoczesnych technologii oraz frameworków takich jak Spring Boot, PostgreSQL oraz baza danych H2. Ukazała również skuteczne rozwiązania dla typowych wyzwań programistycznych, zapewniając stabilność, bezpieczeństwo oraz przyjazność użytkownikowi stworzonej aplikacji.
-
+\item \textbf{Zarządzanie użytkownikami} – admin może przeglądać listę wszystkich kont, zmieniać role użytkowników (np. awansować studenta na nauczyciela jeśli zaistnieje taka potrzeba), a także usuwać konta naruszające regulamin.
+\item \textbf{Zarządzanie kursami i klasami} – admin widzi listę wszystkich utworzonych kursów (klas). Może dodawać nowe kursy, przypisywać lub zmieniać nauczyciela prowadzącego dany kurs, a także usuwać kursy, które są nieaktywne. Co istotne, administrator ma podgląd na skład kursów  poprzez widok listy studentów zapisanych na dany przedmiot (z informacją o ich statusie: oczekujący bądź zaakceptowany). Jeśli kurs nie ma przypisanego nauczyciela, administrator może go wyznaczyć lub kurs będzie widoczny w panelu nauczyciela jako dostępny do przejęcia.
+\item \textbf{Moderacja treści} – admin ma uprawnienia do przeglądu i edycji wszystkich postów i komentarzy. W razie konieczności może usunąć nieodpowiedni komentarz lub materiał.
+\end{itemize} Przyjazny interfejs administracyjny, połączony z bogatym zestawem informacji statystycznych, pozwala na sprawne zarządzanie systemem i podejmowanie decyzji opartych na danych. Na przykład, jeśli administrator zauważy, że jakiś kurs cieszy się dużym zainteresowaniem (wiele zgłoszeń) ale nie ma przypisanego nauczyciela, może zareagować, przydzielając prowadzącego. Jeśli statystyki pokażą niski poziom aktywności (np. mało nowych postów lub komentarzy), może to być sygnał do zachęcenia nauczycieli do częstszego publikowania materiałów lub zorganizowania aktywności angażujących studentów. \section{Przykładowe scenariusze użycia aplikacji} Poniżej przedstawiono kilka przykładowych scenariuszy ilustrujących, jak przebiegają typowe interakcje użytkowników z systemem w praktyce. \subsection{Scenariusz 1: Dodanie nowego materiału przez nauczyciela} Nauczyciel loguje się do systemu i przechodzi do swojego panelu. Wybiera opcję \textit{"Dodaj nowy materiał"}. Otwiera się formularz, w którym nauczyciel podaje tytuł posta (np. "Wprowadzenie do Programowania"), wpisuje treść (kilka akapitów teorii, wprowadzenie do tematu zajęć) oraz dodaje plik PDF z prezentacją z wykładu. Po kliknięciu \textit{"Zapisz"}, materiał zostaje utworzony i zapisany. Nauczyciel zostaje przeniesiony na stronę listy swoich postów, gdzie widzi nowo dodany materiał na liście. Od tej chwili post jest widoczny dla wszystkich studentów na stronie głównej w sekcji aktualności lub w ramach przypisanego kursu (jeśli materiał jest częścią konkretnego kursu). Studenci mogą zapoznać się z treścią posta oraz pobrać załączoną prezentację. \subsection{Scenariusz 2: Ocena i komentarz do materiału przez studenta} Student przegląda listę dostępnych materiałów i otwiera interesujący go post (np. wspomniany "Wprowadzenie do Programowania"). Po przeczytaniu treści, student postanawia zostawić swoją opinię. W polu komentarza wpisuje pytanie do nauczyciela dotyczące niejasnej części materiału i publikuje komentarz. Komentarz natychmiast pojawia się pod postem, widoczny dla innych. Następnie student wystawia ocenę np. daje 9/10 punktów, sygnalizując, że materiał był bardzo pomocny. System zapisuje ocenę. Inni studenci, widząc komentarz, mogą go polubić jeśli również mieli podobne pytanie. Nauczyciel, gdy zaloguje się następnym razem, zobaczy powiadomienie o nowym komentarzu do swojego posta. Może odpowiedzieć studentowi, wyjaśniając wątpliwości, co również czyni poprzez sekcję komentarzy. Dzięki temu platforma wspiera interakcję między studentami a nauczycielami, czyniąc proces nauki bardziej interaktywnym. \subsection{Scenariusz 3: Rejestracja nowego użytkownika i zapis na kurs} Nowy użytkownik (student) odwiedza stronę główną aplikacji i chce uzyskać dostęp do materiałów, które oferuje platforma. Wybiera opcję \textit{"Zarejestruj się"} i wypełnia formularz rejestracyjny podając unikalny login, hasło oraz adres email. Po wysłaniu formularza otrzymuje komunikat o pomyślnej rejestracji. Następnie loguje się za pomocą utworzonego przed chwilą konta. Po zalogowaniu, jako nowy użytkownik (domyślnie student), widzi stronę główną z listą kursów. Wybiera kurs, który go interesuje – np. "Programowanie w Javie". W widoku szczegółów kursu klika przycisk \textit{"Zapisz się na kurs"}. System rejestruje jego zgłoszenie: jeśli kurs jest otwarty (automatyczne zatwierdzanie zapisów jest włączone), od razu uzyskuje status uczestnika i może przeglądać wszystkie lekcje tego kursu. Jeśli kurs wymaga akceptacji (autozatwierdzanie wyłączone), zgłoszenie otrzymuje status "PENDING" (oczekujące). Student widzi informację, że jego prośba o dołączenie czeka na zatwierdzenie przez prowadzącego lub administratora. Może kontynuować korzystanie z innych dostępnych materiałów na platformie. Gdy nauczyciel przydzielony do kursu zaakceptuje zgłoszenie, student zostanie powiadomiony przy kolejnym odwiedzeniu panelu użytkownika zobaczy, że jego status w kursie "Programowanie w Javie" zmienił się na aktywny i od tej chwili ma pełny dostęp do zawartości kursu. \subsection{Scenariusz 4: Przesłanie zadania przez studenta i ocena przez nauczyciela} W trakcie trwania kursu nauczyciel dodaje do jednej z lekcji zadanie domowe (np. projekt do wykonania lub zestaw zadań do rozwiązania). Student, który jest uczestnikiem kursu, po zapoznaniu się z treścią zadania przygotowuje rozwiązanie na swoim komputerze (np. w formie pliku z kodem źródłowym lub dokumentu PDF z odpowiedziami). Następnie loguje się do platformy, przechodzi do widoku szczegółów lekcji, gdzie dostępny jest formularz \textit{"Prześlij rozwiązanie"}. Student wybiera plik ze swojego komputera i zatwierdza przesłanie. Aplikacja przyjmuje plik, zapisuje go w repozytorium \texttt{TaskSubmissionRepository} wraz z informacją, który student i do którego zadania go przesłał. Status tego zgłoszenia jest początkowo "nieoceniony". Nauczyciel, chcąc sprawdzić nadesłane prace, loguje się i otwiera swój panel nauczyciela. W sekcji \textit{"Przesłane rozwiązania"} widzi listę wszystkich nadesłanych przez studentów plików do zadań, które nie zostały jeszcze ocenione. Dla każdego wpisu widnieje nazwa studenta, nazwa zadania oraz opcja pobrania pliku. Nauczyciel klika \textit{"Pobierz"} – aplikacja, dzięki \texttt{FileDownloadController}, zwraca plik wysłany przez studenta (np. kod źródłowy lub dokument) jako załącznik do pobrania. Nauczyciel ocenia pracę offline, po czym wraca do platformy. Przy każdym rozwiązaniu w panelu dostępny jest formularz \textit{"Wystaw ocenę"} nauczyciel wpisuje punktację (w skali od 0 do 10) oraz opcjonalny komentarz zwrotny dla studenta. Po wysłaniu formularza oceny, system zapisuje ocenę i komentarz w obiekcie \texttt{TaskSubmission} (pola \texttt{grade} oraz \texttt{teacherComments}). Rozwiązanie znika z listy "oczekujących na ocenę", stając się ocenionym. Student, przechodząc do swojego panelu, może teraz zobaczyć wynik  przy danym zadaniu pojawia się ocena wystawiona przez nauczyciela oraz ewentualne uwagi. Dzięki temu ma informację zwrotną, czy dobrze wykonał pracę, i czego ewentualnie powinien się nauczyć. Opisane powyżej scenariusze ilustrują kluczowe funkcjonalności aplikacji i sposób, w jaki różne role użytkowników (student, nauczyciel, administrator) współdziałają ze sobą za pośrednictwem systemu. Platforma jest intuicyjna w obsłudze, nawet nowy użytkownik jest w stanie szybko zarejestrować się, zapisać na kurs i rozpocząć naukę korzystając z dostępnych materiałów. Jednocześnie nauczyciele mają do dyspozycji narzędzia do efektywnego przekazywania wiedzy (publikacje materiałów, zadawanie prac domowych, ocenianie) bez konieczności użycia zewnętrznych kanałów komunikacji. Wreszcie, funkcje administracyjne gwarantują, że całość może być nadzorowana i dostosowywana przez uprawnione osoby, co zapewnia stabilność i wysoką jakość działania aplikacji.

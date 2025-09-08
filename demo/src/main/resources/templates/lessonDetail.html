@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title th:text="${lesson.title}">Lesson Detail</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/darkMode.css}" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 bg-dark text-light">
 <!-- Include common navbar fragment -->
 <div th:replace="~{common :: navbar(loggedIn=${loggedIn}, isAdmin=${isAdmin}, title=${title})}"></div>
 
-<div class="container mt-5">
+<main class="container my-5 flex-grow-1">
     <h2 th:text="${lesson.title}">Lesson Title</h2>
     <p th:text="${lesson.description}">Lesson Description</p>
     <div>
@@ -30,12 +31,12 @@
             </div>
         </div>
     </div>
-    <a href="/classes" class="btn btn-secondary mt-3">Back to Classes</a>
-</div>
-
-<!-- Include common footer fragment -->
-<div th:replace="common :: footer"></div>
-<script th:src="@{/js/darkMode.js}"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <a href="/classes" class="btn btn-outline-light mt-3">Back to Classes</a>
+    </div>
+</main>
+    <!-- Include common footer fragment -->
+    <div th:replace="common :: footer"></div>
+    <script th:src="@{/js/darkMode.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

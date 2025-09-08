@@ -7,10 +7,7 @@ import com.example.demo.persistent.repository.*;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -37,6 +34,9 @@ public class ClassesController {
     private UserRepository userRepository;
     @Autowired
     private LessonTaskRepository lessonTaskRepository;
+
+    @Autowired
+    private TaskSubmissionRepository taskSubmissionRepository;
 
     @GetMapping("/classes")
     public String listClasses(Model model) {
@@ -78,36 +78,22 @@ public class ClassesController {
         return "classDetail";
     }
 
-    @PostMapping("/classes/{id}/signup")
-    public String signUp(@PathVariable Long id, Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
+    @PostMapping("/classes/{classId}/signup")
+    public String signup(@PathVariable Long classId, Principal principal) {
+        SchoolClass sc = schoolClassRepository.findById(classId);
+        if (sc == null || principal == null) return "redirect:/classes";
 
-        User user = userRepository.findByUsername(principal.getName());
-        if (user == null) {
-            return "redirect:/login?error=userNotFound";
-        }
-        Long userId = user.getId();
+        User u = userRepository.findByUsername(principal.getName());
+        if (u == null) return "redirect:/classes";
 
-        Optional<ClassSignUp> existing =
-                classSignUpRepository.findBySchoolClassIdAndUserId(id, userId);
-        if (existing.isEmpty()) {
-            ClassSignUp signup = new ClassSignUp();
-            signup.setSchoolClassId(id);
-            signup.setUserId(userId);
+        ClassSignUp su = new ClassSignUp();
+        su.setSchoolClassId(classId);
+        su.setUserId(u.getId());
+        su.setCreatedDate(LocalDateTime.now());
+        su.setStatus(Boolean.TRUE.equals(sc.getAutoApprove()) ? "APPROVED" : "PENDING");
 
-            // findById now returns SchoolClass or null
-            SchoolClass schoolClass = schoolClassRepository.findById(id);
-            if (schoolClass != null && Boolean.TRUE.equals(schoolClass.getAutoApprove())) {
-                signup.setStatus("APPROVED");
-            } else {
-                signup.setStatus("PENDING");
-            }
-            signup.setCreatedDate(LocalDateTime.now());
-            classSignUpRepository.save(signup);
-        }
-        return "redirect:/classes/" + id;
+        classSignUpRepository.save(su);
+        return "redirect:/classes/" + classId; // or wherever you want to land
     }
 
 
@@ -127,26 +113,42 @@ public class ClassesController {
 
     @GetMapping("/classes/{id}/lessons")
     public String viewLessons(@PathVariable Long id, Model model, Principal principal) {
-        // findById now returns SchoolClass or null
         SchoolClass schoolClass = schoolClassRepository.findById(id);
         if (schoolClass == null) {
             return "redirect:/classes?error=classNotFound";
         }
         model.addAttribute("schoolClass", schoolClass);
 
-        // Retrieve lessons for the class
         List<Lesson> lessons = lessonRepository.findBySchoolClassId(id);
         model.addAttribute("lessons", lessons);
 
         Map<Long, Long> lessonTaskMapping = new HashMap<>();
         for (Lesson lesson : lessons) {
             List<LessonTask> tasks = lessonTaskRepository.findByLessonId(lesson.getId());
-            if (!tasks.isEmpty()) {
+            if (tasks != null && !tasks.isEmpty() && tasks.get(0) != null) {
                 lessonTaskMapping.put(lesson.getId(), tasks.get(0).getId());
             }
         }
         model.addAttribute("lessonTaskMapping", lessonTaskMapping);
 
+        if (principal != null) {
+            User currentUser = userRepository.findByUsername(principal.getName());
+            if (currentUser != null) {
+                Set<Long> submittedTaskIds = new HashSet<>();
+
+                List<TaskSubmission> submissions = taskSubmissionRepository.findByUserId(currentUser.getId());
+
+
+                for (TaskSubmission ts : submissions) {
+                    if (ts != null && ts.getLessonTaskId() != null) {
+                        submittedTaskIds.add(ts.getLessonTaskId());
+                    }
+                }
+                model.addAttribute("submittedTaskIds", submittedTaskIds);
+            }
+        }
+
         return "classLessonsUser";
     }
+
 }

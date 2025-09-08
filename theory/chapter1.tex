@@ -18,47 +18,71 @@
 \chapter{Technologie zastosowane w projekcie}
 \label{rozdzial1}
 
-Celem niniejszego rozdziału jest przedstawienie technologii oraz narzędzi wykorzystanych w procesie implementacji aplikacji do udostępniania materiałów edukacyjnych. W rozdziale opisano przede wszystkim technologię Spring Framework oraz użyte systemy baz danych: PostgreSQL jako bazę danych produkcyjną oraz H2, która pełni rolę pomocniczą, przechowującą dane statystyczne, testowe oraz sesyjne.
+Celem niniejszego rozdziału jest przedstawienie technologii oraz narzędzi wykorzystanych w procesie implementacji aplikacji do udostępniania materiałów edukacyjnych. W rozdziale opisano przede wszystkim technologię Spring Framework oraz zastosowaną bazę danych Hazelcast.
+
+\section{Język Java i Platforma JVM}
+
+Java to język ogólnego przeznaczenia o statycznym typowaniu, którego programy uruchamia \emph{Java Virtual Machine} (JVM). Kompilacja do bajtkodu i wykonanie na JVM sprawiają, że ten sam artefakt może działać na różnych systemach operacyjnych bez rekompilacji.  \cite{java-docs}.
+
+\subsection*{JDK, standardowa biblioteka i model wykonania}
+Środowisko deweloperskie (JDK) dostarcza narzędzia takie jak kompilator \texttt{javac} oraz rozbudowaną bibliotekę standardową. Znajdują się tam m.in.\ kolekcje, strumienie wejścia/wyjścia, API sieciowe. W praktyce oznacza to, że wiele typowych zadań aplikacyjnych można zrealizować bez dodatkowych zależności. \cite{java-docs,java-head-first}.
+
+\subsection*{Zarządzanie pamięcią i bezpieczeństwo}
+JVM automatycznie odzyskuje nieużywaną pamięć poprzez Garbage Collector. Dzięki Garbage Collector nie trzeba się martwić zarządzaniem pamięcią \cite{java-docs}.
+
+
+\subsection*{Dobre praktyki projektowe}
+W codziennej pracy istotne są zasady dotyczące m.in.\ niezmienności, poprawnego nadpisywania \texttt{equals}/\texttt{hashCode} i bezpiecznego publikowania obiektów. Takie wytyczne pomagają unikać subtelnych błędów oraz poprawiają czytelność i utrzymywalność kodu w większych bazach kodu \cite{effective-java-3e}.
 
 \section{Spring Framework}
 
-Spring Framework jest obecnie jednym z najpopularniejszych narzędzi do tworzenia aplikacji Java klasy enterprise. Charakteryzuje się modularnością, łatwą integracją z innymi technologiami oraz obsługą odwrócenia kontroli (ang. \textit{Inversion of Control - IoC}) oraz wstrzykiwania zależności (ang. \textit{Dependency Injection - DI}). Szczególną uwagę zwraca Spring Boot, będący rozszerzeniem podstawowego frameworka, który umożliwia szybką konfigurację oraz uruchomienie aplikacji, dostarczając gotowe rozwiązania wielu typowych problemów programistycznych.
+Spring stanowi szeroko wykorzystywany zestaw komponentów do tworzenia aplikacji w języku Java. Framework dostarcza mechanizmy wstrzykiwania zależności, wsparcie dla warstwowej architektury oraz integracje z powszechnie używanymi bibliotekami. W projekcie zastosowano Spring Boot, który upraszcza konfigurację i uruchamianie usług dzięki zestawowi starterów czyli gotowym modułom zależności, które automatycznie importują niezbędne biblioteki, frameworki i konfiguracje,co istotnie przyspiesza implementację i ułatwia utrzymanie rozwiązania \cite{spring-boot}.
 
 W projekcie wykorzystano między innymi:
-\begin{itemize}
-    \item \textbf{Spring MVC} - do implementacji warstwy widoku i obsługi żądań HTTP.
-    \item \textbf{Spring Security} - do zarządzania uwierzytelnianiem użytkowników oraz autoryzacją dostępu do zasobów aplikacji.
-    \item \textbf{Spring Data JDBC} - do zarządzania dostępem do baz danych za pomocą wygodnych repozytoriów oraz operacji CRUD.
-\end{itemize}
 
-\section{Baza danych PostgreSQL}
+– \textbf{Spring MVC} –- do implementacji warstwy widoku i obsługi żądań HTTP.
 
-Do trwałego przechowywania danych produkcyjnych aplikacji użyta została baza danych PostgreSQL, która charakteryzuje się wysoką wydajnością, zgodnością ze standardami SQL oraz wsparciem dla zaawansowanych operacji i funkcjonalności. W ramach aplikacji PostgreSQL przechowuje takie informacje, jak dane użytkowników, publikowane materiały, komentarze, oceny i inne dane związane z funkcjonalnościami aplikacji.
+– \textbf{Spring Security} -– do zarządzania uwierzytelnianiem użytkowników oraz autoryzacją dostępu do zasobów aplikacji.
 
-\section{Baza danych H2}
+– \textbf{Spring Data} -– do zarządzania dostępem do baz danych za pomocą wygodnych repozytoriów oraz operacji CRUD.
 
-W projekcie wykorzystano również wbudowaną bazę danych H2, działającą w pamięci operacyjnej. Jej zastosowanie obejmuje:
-\begin{itemize}
-    \item \textbf{Testowanie aplikacji} - baza danych H2 pozwala na szybkie i efektywne przeprowadzanie testów integracyjnych oraz jednostkowych.
-    \item \textbf{Przechowywanie danych sesyjnych} - H2 umożliwia szybkie zarządzanie danymi sesyjnymi aplikacji, dzięki czemu aplikacja może działać szybciej i sprawniej obsługiwać wiele jednoczesnych sesji.
-    \item \textbf{Statystyki aplikacji} - baza danych H2 przechowuje także dane dotyczące statystyk aplikacji, które są wykorzystywane do analizowania aktywności użytkowników i działania systemu.
-\end{itemize}
+\section{Baza danych w pamięci Hazelcast}
 
-Zastosowanie dwóch rodzajów baz danych (PostgreSQL i H2) pozwala na optymalne wykorzystanie ich cech, zwiększenie wydajności aplikacji oraz uproszczenie procesu rozwoju, testowania i wdrażania.
+W projekcie wykorzystano bazę danych w pamięci  – Hazelcast. Baza ta charakteryzuje się wyjątkową wydajnością, niskimi opóźnieniami oraz dużą skalowalnością dzięki możliwości pracy w klastrze. Najczęściej wykorzystywaną strukturą jest rozproszona mapa klucz–wartość (\texttt{IMap}), Hazelcast służy jako szybka warstwa przechowywania i wymiany danych pomiędzy komponentami systemu, przechowująca wszystkie dane aplikacji, takie jak informacje o użytkownikach, lekcjach, zadaniach, komentarzach, ocenach oraz dane sesyjne i statystyczne \cite{hazelcast-docs}. Wybór Hazelcast jako kluczowego komponentu warstwy danych został poprzedzony szczegółową analizą porównawczą alternatywnych rozwiązań, która została przedstawiona w kolejnym rozdziale.
+
+Kluczowe zalety wykorzystania Hazelcast w projekcie:
+
+– Wysoka wydajność -– wszystkie operacje na danych odbywają się w pamięci RAM, co zapewnia szybki dostęp do informacji.
+
+– Skalowalność -– możliwość łatwego dodawania nowych węzłów do klastra w celu zwiększenia wydajności i pojemności systemu.
+
+– Trwałość i odporność na awarie -– dzięki mechanizmowi kopi zapasowych (backup-count), dane są zabezpieczone przed utratą w razie awarii jednego z węzłów klastra.
+
+– Bogate możliwości indeksowania oraz szybkiego wyszukiwania danych.
+
+– Przechowywanie danych sesyjnych i tymczasowych bez konieczności stosowania dodatkowych rozwiązań.
+
+Zastosowanie Hazelcast pozwoliło na znaczące uproszczenie architektury aplikacji oraz zwiększenie jej ogólnej wydajności i niezawodności.
 
 \section{Inne technologie}
 
-Oprócz wymienionych wyżej technologii w projekcie zastosowano dodatkowo:
-\begin{itemize}
-    \item \textbf{Thymeleaf} - do renderowanie stron HTML w aplikacji webowej.
-    \item \textbf{Bootstrap 5} - do stylizacji interfejsu użytkownika oraz zapewnienia responsywności aplikacji.
-    \item \textbf{JUnit} - do pisania testów jednostkowych oraz integracyjnych.
-    \item \textbf{Maven} - do zarządzania zależnościami oraz budowania aplikacji.
-    \item \textbf{Javscript} - do zarządzania wyglądem strony oraz do technologii AJAX
-    \item \textbf{CSS} - do zarządzania wyglądem strony
-\end{itemize}
+Oprócz wymienionych wyżej technologii w projekcie zastosowano dodatkowo kilka narzędzi i bibliotek, które wspomagają budowanie nowoczesnych aplikacji webowych oraz poprawiają jakość i komfort użytkowania.
+
+- \textbf{Thymeleaf} –  silnik szablonów, który integruje się z technologią Spring. Umożliwia renderowanie stron HTML, automatycznie dostarczając dane z modelu aplikacji bezpośrednio do widoków. Ułatwia wiązanie danych z warstwą prezentacji i dobrze współpracuje ze Spring Boot \cite{thymeleaf-docs}.
+
+– \textbf{Bootstrap 5} – popularny framework CSS, który zapewnia podstawowe style oraz komponenty, pozwalając na szybkie tworzenie responsywnych i estetycznych interfejsów użytkownika. Zapewnia między innymi spójne układy i typowe elementy nawigacyjne \cite{bootstrap-docs}.
+
+– \textbf{JUnit} – biblioteka testowa przeznaczona do pisania i wykonywania testów, w projekcie wykorzystywano testy JUnit do sprawdzania poprawności działania poszczególnych komponentów systemu \cite{junit-docs}.
+
+
+– \textbf{Maven} – narzędzie do zarządzania cyklem życia projektu Java (kompilacja, testowanie, pakowanie) oraz zależnościami, oparte na pliku \texttt{pom.xml} \cite{maven-docs}.
+
+– \textbf{JavaScript} – język programowania stosowany po stronie przeglądarki, w projekcie JavaScript wykorzystywany był przede wszystkim do obsługi interakcji użytkownika, walidacji danych po stronie klienta oraz obsługi asynchronicznych żądań za pomocą technologii AJAX \cite{javascript-docs}.
+
+– \textbf{CSS} – kaskadowe arkusze stylów odpowiedzialne za wygląd i układ elementów interfejsu, stosowane razem z Bootstrap w celu uzyskania spójnej warstwy wizualnej \cite{css-docs}.
 
 W kolejnych rozdziałach przedstawione zostaną szczegóły implementacyjne dotyczące wyżej wymienionych technologii oraz sposób ich wykorzystania w praktyce.
+
 
 
 

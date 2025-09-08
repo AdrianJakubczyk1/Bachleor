@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Teacher Dashboard</title>
-    <link rel="stylesheet" href="/css/dark_mode.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/darkMode.css}" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 bg-dark text-light">
 <!-- Include common navbar fragment -->
 <div th:replace="~{common :: navbar(loggedIn=${loggedIn}, isAdmin=${isAdmin}, title=${title})}"></div>
 
-<div class="container mt-5">
+<main class="container my-5 flex-grow-1">
     <h1>Teacher Dashboard</h1>
     <p>Welcome, <span th:text="${username}">Teacher</span>!</p>
     <div class="list-group">
-        <a class="list-group-item list-group-item-action" href="/teacher/posts">Manage My Posts</a>
-        <a class="list-group-item list-group-item-action" href="/teacher/classes">Manage My Classes &amp; Lessons</a>
-        <a class="list-group-item list-group-item-action" href="/teacher/submissions">Grade Task Submissions</a>
-        <a class="list-group-item list-group-item-action" href="/teacher/availableClasses">Available Classes</a>
+        <a class="list-group-item list-group-item-action bg-dark text-light border-secondary" href="/teacher/posts">Manage My Posts</a>
+        <a class="list-group-item list-group-item-action bg-dark text-light border-secondary" href="/teacher/classes">Manage My Classes &amp; Lessons</a>
+        <a class="list-group-item list-group-item-action bg-dark text-light border-secondary" href="/teacher/submissions">Grade Task Submissions</a>
+        <a class="list-group-item list-group-item-action bg-dark text-light border-secondary" href="/teacher/availableClasses">Available Classes</a>
     </div>
-</div>
+</main>>
 
-<!-- Include common footer fragment -->
-<div th:replace="common :: footer"></div>
+    <!-- Include common footer fragment -->
+    <div th:replace="common :: footer"></div>
 
-<script src="/js/dark_mode.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/dark_mode.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

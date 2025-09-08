@@ -6,7 +6,7 @@ import com.example.demo.persistent.repository.ClassSignUpRepository;
 import com.example.demo.persistent.repository.SchoolClassRepository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.*;
 
 import com.example.demo.persistent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.persistent.model.User;
-import java.util.List;
-import java.util.Set;
+
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -38,6 +37,15 @@ public class AdminClassesController {
     @GetMapping
     public String listClasses(Model model) {
         model.addAttribute("classes", schoolClassRepository.findAll());
+        Map<Long, String> teacherNames = new HashMap<>();
+        for (User u : userRepository.findAll()) {
+            String first = u.getFirstName() != null ? u.getFirstName() : "";
+            String last  = u.getLastName()  != null ? (" " + u.getLastName()) : "";
+            String full  = (first + last).trim();
+            if (full.isEmpty()) full = u.getUsername();
+            teacherNames.put(u.getId(), full);
+        }
+        model.addAttribute("teacherNames", teacherNames);
         return "adminClasses";
     }
 

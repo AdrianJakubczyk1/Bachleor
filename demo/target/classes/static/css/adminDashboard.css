@@ -32,3 +32,37 @@
    padding: 20px;
  }
 
+ /* Dark sidebar look */
+ .left-sidebar {
+   background: #141618;
+   min-height: 100vh;
+   padding: 1rem;
+   border-right: 1px solid #2a2e33;
+ }
+
+ /* Tiles */
+ .sidebar-item {
+   background-color: #1b1f23 !important;
+   color: #e6e8ea !important;
+   border: 1px solid #2a2e33 !important;
+ }
+
+ /* Remove the double border between flush items */
+ .list-group-flush .sidebar-item + .sidebar-item {
+   border-top: 0;
+ }
+
+ /* Hover/active */
+ .sidebar-item:hover,
+ .sidebar-item:focus {
+   background-color: #23282d !important;
+   color: #fff !important;
+   text-decoration: none;
+ }
+
+ .sidebar-item.active {
+   background-color: #0d6efd !important; /* Bootstrap primary */
+   border-color: #0d6efd !important;
+   color: #fff !important;
+ }
+

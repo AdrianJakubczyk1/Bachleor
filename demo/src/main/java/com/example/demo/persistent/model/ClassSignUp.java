@@ -12,7 +12,6 @@ public class ClassSignUp implements Serializable {
     private String status;
     private LocalDateTime createdDate;
 
-    // No-args ctor for Hazelcast serialization
     public ClassSignUp() { }
 
     // Full-args ctor

@@ -22,3 +22,33 @@ body {
 .footer {
   flex-shrink: 0;
 }
+
+/* General dark surface (matches the sidebar tiles) */
+:root {
+  --surface-1: #141618;
+  --surface-2: #1b1f23;
+  --border-1: #2a2e33;
+  --text-1: #e6e8ea;
+}
+
+body.bg-dark { background-color: var(--surface-1) !important; }
+.form-container { background: var(--surface-2) !important; }
+
+/* Form fields */
+.form-control, .form-select, .form-check-input {
+  background-color: #343a40 !important; /* close to Bootstrap 'secondary' */
+  color: var(--text-1) !important;
+  border-color: var(--border-1) !important;
+}
+.form-control::placeholder { color: #c9cbcf; }
+
+/* Tables */
+.table-dark {
+  --bs-table-bg: var(--surface-2);
+  --bs-table-border-color: var(--border-1);
+}
+.table-dark thead th {
+  background-color: var(--surface-1) !important;
+  color: var(--text-1) !important;
+  border-color: var(--border-1) !important;
+}

@@ -138,6 +138,10 @@
 				<version>3.5.2</version>
 				<configuration>
 					<testFailureIgnore>true</testFailureIgnore>
+					<systemPropertyVariables>
+						<spring.profiles.active>test</spring.profiles.active>
+					</systemPropertyVariables>
+
 				</configuration>
 			</plugin>
 

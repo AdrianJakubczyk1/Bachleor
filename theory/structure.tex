@@ -25,7 +25,7 @@
 
 % For math equations, theorems, symbols, etc
 \usepackage{amsmath,amsfonts,amssymb,amsthm} 
-
+\usepackage[section]{placeins}
 % Customize lists
 \usepackage{enumitem} 
 \setlist{nolistsep} % Reduce spacing between bullet points and numbered lists
@@ -54,12 +54,15 @@
 \usepackage[T1]{fontenc}
 % \usepackage{lmodern}
 \renewcommand*\oldstylenums[1]{{\firaoldstyle #1}}
-
+\usepackage[most]{tcolorbox}
+\tcbset{colback=gray!3,colframe=black!10,enhanced,boxrule=0.3pt,arc=2mm}
+\usepackage{paracol} % dwie kolumny
+\usepackage{caption} % \captionof
 \usepackage{newtxmath,newtxtext}
 \usepackage[polish]{babel}% moved after to avoid conflict between polish babel and amsmath
 \usepackage[utf8]{inputenc} 
-%\usepackage{avant} % Use the Avantgarde font for headings
 
+%\usepackage{avant} % Use the Avantgarde font for headings
 %----------------------------------------------------------------------------------------
 %	PAGE HEADERS AND FOOTERS (JK - Styling for the current chapter in the header)
 %----------------------------------------------------------------------------------------
@@ -139,18 +142,17 @@
 %	BIBLIOGRAPHY (JK - configuring and styling)
 %----------------------------------------------------------------------------------------
 % 
+% --- structure: bibliography config ---
+\usepackage[hidelinks]{hyperref}
 \usepackage[
-style=numeric,% style alphabetic or numeric
-citestyle=numeric,
-sorting=nyt,%name -year -title
-sortcites=true,
-autopunct=true,
-autolang=hyphen,
-hyperref=true, % if the citation is the link to bibliography
-backend=biber,
-defernumbers=true]{biblatex}
-\addbibresource{bibliography.bib} % BibTeX bibliography file
-\defbibheading{bibempty}{}
+  style=numeric,
+  citestyle=numeric,
+  sorting=none,         % numbers follow order of first citation
+  sortcites=true,
+  backend=biber,
+  defernumbers=true
+]{biblatex}
+\addbibresource{bibliography.bib} % .bib is in the SAME folder as main
 
 
 %\usepackage{calc} % For simpler calculation - used for spacing the index letter headings correctly
@@ -174,7 +176,10 @@ defernumbers=true]{biblatex}
   {{#1\strut}}
   {0pt}
   {}[]
-
+\usepackage{csvsimple}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
 %----------------------------------------------------------------------------------------
 %	Hanging SECTION NUMBERING (MARGIN)
 %----------------------------------------------------------------------------------------
@@ -438,7 +443,7 @@ literate=%
 %	HYPERLINKS IN THE DOCUMENTS
 %----------------------------------------------------------------------------------------
 
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 %\hypersetup{hidelinks,backref=true,pagebackref=true,hyperindex=true,colorlinks=false,breaklinks=true,urlcolor=blueZUT,bookmarks=true,bookmarksopen=false}
 \hypersetup{hidelinks,breaklinks=true,urlcolor=blueZUT,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}}
 

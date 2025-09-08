@@ -94,8 +94,8 @@ class ClassesControllerUnitTest {
     @Test
     void testSignUpNotLoggedIn() {
 
-        String redirect = controller.signUp(1L, null);
-        assertEquals("redirect:/login", redirect);
+        String redirect = controller.signup(1L, null);
+        assertEquals("redirect:/classes", redirect);
     }
 
     @Test
@@ -104,8 +104,8 @@ class ClassesControllerUnitTest {
         Principal principal = () -> "nonexistentUser";
         when(userRepository.findByUsername("nonexistentUser")).thenReturn(null);
 
-        String redirect = controller.signUp(1L, principal);
-        assertEquals("redirect:/login?error=userNotFound", redirect);
+        String redirect = controller.signup(1L, principal);
+        assertEquals("redirect:/classes", redirect);
     }
 
     @Test
@@ -126,7 +126,7 @@ class ClassesControllerUnitTest {
         schoolClass.setAutoApprove(true);
         when(schoolClassRepository.findById(classId)).thenReturn(schoolClass);
 
-        String redirect = controller.signUp(classId, principal);
+        String redirect = controller.signup(classId, principal);
 
         ArgumentCaptor<ClassSignUp> signupCaptor = ArgumentCaptor.forClass(ClassSignUp.class);
         verify(classSignUpRepository).save(signupCaptor.capture());

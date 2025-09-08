@@ -15,38 +15,96 @@
 \chapter{Dodatek}
 \label{chapter:dodatek_A}
 
-\textit{W dodatkach mogą znaleźć się większe fragmenty kodów źródłowych, instrukcje działania programów, specyfikacje opcji, z którymi wywołuje się program, większe dane tabelaryczne, specyfikacje oprogramowania, dłuższe opisy teoretyczne, itp.}
+\section*{Cel}
+Niniejszy aneks zawiera zwięzłe, implementacyjne podsumowanie aplikacji webowej zrealizowanej w ramach przedstawionej pracy. System umożliwia udostępnianie, wyszukiwanie i ocenę materiałów edukacyjnych oraz pokazuje, w jaki sposób baza danych w pamięci Hazelcast może poprawić responsywność i skalowalność aplikacji opartej na Spring Boot.
 
-What is Lorem Ipsum?
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry'es standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+\section*{Przegląd systemu}
+Aplikacja stosuje warstwowy, zorientowany na usługi styl projektowy. Warstwa back-end jest zaimplementowana w Javie (Spring Boot) i udostępnia REST-owe endpointy dla interfejsu użytkownika. Hazelcast wykorzystywany jest jako baza danych.
 
-Why do we use it?
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+\begin{table}[h]
+  \centering
+  \caption{Główne komponenty i odpowiedzialności}
+  \label{tab:components}
+  \begin{tabular}{@{}p{3.3cm}p{9.2cm}@{}}
+  \toprule
+  Komponent & Odpowiedzialność \\
+  \midrule
+  Kontrolery & Endpointy HTTPS dla autentykacji, materiałów, wyszukiwania oraz funkcji użytkownika/profilu. \\
+  Auth \& Security & Weryfikacja , obsługa sesji/JWT, kontrola dostępu oparta na rolach (user/admin). \\
+  Wyszukiwarka & Wyszukiwanie słów kluczowych po zcache'owanych metadanych i tagach. \\
+  Rating/Comment Service & feedback od użytkowników. \\
+  Admin & przegląd nowych zgłoszeń, akceptowanie i odrzucanie zgłoszeń, usuwanie/edytowanie treści. \\
+  \bottomrule
+  \end{tabular}
+\end{table}
 
+\section*{Wybrane przypadki użycia}
+\begin{itemize}
+  \item \textbf{Rejestracja użytkownika:} Gość podaje imię, e-mail i hasło; system waliduje dane, sprawdza unikalność e-maila.
+  \item \textbf{Logowanie i sesja:} Istniejący użytkownik uwierzytelnia się; wydawana jest sesja.
+  \item \textbf{Przesyłanie materiału:} Zalogowany użytkownik wgrywa plik z tytułem i opisem.
+  \item \textbf{Przeglądanie artykułów:} Każdy użytkownik może przeglądać stronnicowane listy artykułów.
+  \item \textbf{Wyszukiwanie materiałów:} Użytkownik wyszukuje po słowach kluczowych; usługa odpytuje indeks w pamięci, zwracając pasujące zasoby.
+  \item \textbf{Podgląd/Pobranie:} Użytkownik otwiera stronę z dostępnym materiałem do pobrania klika przycisk pobierz, udostępniony plik zostaje pobrany
+  \item \textbf{Ocena i komentarz:} Pod artykułami użytkownicy wystawiają oceny (1--5) oraz mogą publikować komentarze.
+  \item \textbf{Zarządzanie profilem:} Użytkownik aktualizuje dane na stronie do zarządzania profilem
+  \item \textbf{Moderacja administracyjna:} Administrator zatwierdza/odrzuca oczekujące zgłoszenia do klas oraz zarządza użytkownikami i artykulami.
+\end{itemize}
 
-Where does it come from?
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+\section*{przykład REST API}
+\noindent Poniższa tabela szkicuje przykładowe REST endpointy. O ile nie wskazano inaczej, wymagane jest uwierzytelnienie.
 
-The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 an
+\begin{table}[h]
+  \centering
+  \caption{Przykładowe punkty końcowe}
+  \label{tab:endpoints}
+  \begin{tabular}{@{}p{2.1cm}p{6.4cm}p{3.9cm}@{}}
+  \toprule
+  Metoda & Ścieżka & Cel / Autoryzacja \\
+  \midrule
+  POST & \texttt{/api/auth/register} & Utworzenie konta, dostępne dla każdego. \\
+  POST & \texttt{/api/auth/login} & Uzyskanie sesji/JWT, dostępne dla każdego. \\
+  GET & \texttt{/api/posts} & przegląd postów, dostępne dla każdego. \\
+  GET & \texttt{/api/posts/\{id\}} & szczegóły posta; dostępne dla każdego. \\
+  POST & \texttt{/api/posts} & Przesłanie nowego materiału, dostępne dla nauczyciela i admina. \\
+  GET & \texttt{/api/search?q=...} & Wyszukiwanie postów; dostępne dla każdego. \\
+  POST & \texttt{/api/posts/\{id\}/ratings} & Dodanie oceny, dostępne dla zalogowanych. \\
+  POST & \texttt{/api/posts/\{id\}/comments} & Dodanie komentarza; dostępne dla zalogowanych. \\
+  \bottomrule
+  \end{tabular}
+\end{table}
 
-What is Lorem Ipsum?
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+\section*{Konfiguracja — wycinek (Hazelcast)}
+\noindent Poniższe zestawienie pokazuje minimalny kod konfiguracji Spring Boot uruchamiający instancję Hazelcast:
 
-Why do we use it?
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+\begin{lstlisting}[language=yaml,caption={Minimalny fragment konfiguracji Hazelcast},label={lst:hz-config}]
+# application.yml
+spring:
+  cache:
+    type: hazelcast
+  session:
+    store-type: none
+# przyklad konfiguracji
+# @Bean
+# public HazelcastInstance hazelcastInstance() {
+#   Config cfg = new Config();
+#   cfg.setClusterName("edu-share-cluster");
+#   cfg.addMapConfig(new MapConfig("materials")
+#       .setTimeToLiveSeconds(0)     
+#       .setBackupCount(1));          
+#   cfg.addMapConfig(new MapConfig("sessions")
+#       .setTimeToLiveSeconds(1800)); # 30 min TTL sesji, jeśli używane
+#   return Hazelcast.newHazelcastInstance(cfg);
+# }
+\end{lstlisting}
 
+\section*{Atrybuty jakości i uzasadnienie}
+\textbf{Wydajność i skalowalność:} Ścieżki z przewagą odczytów, korzystają z dostępu w pamięci, co skraca czasy odpowiedzi i odciąża bazę. Skalowanie horyzontalne wspiera dystrybucja danych i klaster Hazelcast
 
-Where does it come from?
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+\noindent\textbf{Bezpieczeństwo:} Stosowane są standardowe wzorce Spring Security (haszowanie haseł, autoryzacja oparta na rolach). Operacje wrażliwe (moderacja) wymagają uwierzytelnienia i odpowiednich ról.
 
-The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 anWhat is Lorem Ipsum?
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+\noindent\textbf{Utrzymywalność:} Wyraźny podział odpowiedzialności (kontrolery, serwisy, repozytoria) oraz dobrze zdefiniowane REST-owe endpointy ułatwiają testowanie i przyszłą rozbudowę (np. nowe typy treści).
 
-Why do we use it?
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+\section*{Kierunki rozwoju}
+Planowane usprawnienia obejmują: lepsza wyszukiwarka, podgląd treści, zaawansowane strategie cache'owania optymalizujące zużycie pamięci przy dużym obciążeniu.
 
-
-Where does it come from?
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
-
-The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 an

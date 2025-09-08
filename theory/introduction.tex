@@ -14,17 +14,14 @@
 
 \chapter*{Wstęp}
 
-Współczesne technologie informacyjne oferują szerokie możliwości w zakresie udostępniania materiałów edukacyjnych, co znacząco wpływa na efektywność procesu kształcenia. Wraz z rozwojem technologii webowych oraz frameworków aplikacyjnych, takich jak Spring, powstają zaawansowane aplikacje umożliwiające wygodne zarządzanie i wymianę treści edukacyjnych.
 
-Niniejsza praca przedstawia projekt oraz implementację aplikacji internetowej stworzonej przy użyciu frameworka Spring, której podstawowym celem jest umożliwienie użytkownikom wygodnego dzielenia się materiałami edukacyjnymi, zarządzania nimi, a także analizowania aktywności użytkowników i oceniania materiałów wysyłanych przez użytkowników. W ramach projektu wykorzystane zostały dwie różne bazy danych: PostgreSQL oraz wbudowana baza danych H2. Baza danych PostgreSQL pełni rolę trwałego kontenera danych przechowującego główne informacje aplikacji, takie jak dane użytkowników, treści postów oraz komentarze. Natomiast baza danych H2 została zastosowana do celów przechowywania danych tymczasowych, takich jak statystyki użytkowania aplikacji, dane sesji oraz do testów integracyjnych i jednostkowych.
+Współczesne aplikacje webowe stawiają coraz wyższe wymagania w zakresie wydajności i skalowalności, co prowadzi do rosnącej popularności systemów baz danych w pamięci (in-memory). Rozwiązania te, dzięki eliminacji opóźnień związanych z operacjami dyskowymi, oferują znaczące przyspieszenie dostępu do danych. Termin ,,baza danych w pamięci'' obejmuje  szerokie spektrum technologii, od prostych pamięci podręcznych po złożone siatki danych i rozproszone bazy danych, z których każda posiada unikalne kompromisy architektoniczne. Wybór niewłaściwej technologii może prowadzić do niepotrzebnej złożoności lub braków funkcjonalnych.
 
-Praca zawiera opis wykorzystanych technologii, szczegóły implementacyjne poszczególnych modułów aplikacji oraz prezentację rezultatów działania. Omówione zostały również praktyczne aspekty zarządzania danymi, kwestie bezpieczeństwa oraz wydajności aplikacji webowych opartych na Springu. Całość dopełniają wyniki testów oraz podsumowanie możliwości dalszego rozwoju systemu.
+W związku z tym, niniejsza praca stawia sobie za cel:  \textit{Analiza porównawcza wybranych systemów zarządzania bazami danych w pamięci. Wykorzystanie frameworka Spring oraz wybranej bazy danych w pamięci w aplikacji webowej odostępniającej materiały dydaktyczne.} a zakres pracy to:
+1. Porównanie popularnych systemów zarządzania bazą danych w pamięci.
+2. Opracowanie aplikacji webowej udostępniającej materiały dydaktyczne wykorzystującej wybraną bazę danych.
+3. Testowanie i analiza wyników.
 
+Praca realizuje dwuetapowy proces. W pierwszej kolejności przeprowadzona zostanie formalna analiza porównawcza czołowych systemów — Memcached, Redis, Apache Ignite oraz Hazelcast — w celu zidentyfikowania i uzasadnienia wyboru optymalnego rozwiązania. Następnie, w oparciu o dokonaną selekcję, zaprojektowana, zaimplementowana i poddana testom zostanie aplikacja webowa.
 
-\begin{enumerate}
-\item Opis dziedziny jakiej dotyczy praca, ze wskazaniem, że temat pracy jest ważny, bieżący, itp.
-\item Jaki problem z dziedziny się rozwiązuje.
-\item Cel i teza pracy
-\item W jaki sposób cel zostanie osiągnięty a tez potwierdzona.
-\item Struktura pracy.
-\end{enumerate} 
+W kolejnych rozdziałach przedstawiono szczegóły analizy, proces implementacji z wykorzystaniem frameworka Spring Boot oraz wyniki testów wydajnościowych i funkcjonalnych, które empirycznie weryfikują słuszność podjętej decyzji architektonicznej.

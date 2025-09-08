@@ -23,6 +23,7 @@ com\example\demo\TeacherTaskOverviewController.class
 com\example\demo\persistent\repository\LessonRepository.class
 com\example\demo\persistent\model\LessonRating.class
 com\example\demo\AdminDashboardController.class
+com\example\demo\config\PerfDataSeeder.class
 com\example\demo\ClassesController.class
 com\example\demo\persistent\model\Post.class
 com\example\demo\UserPanelController.class

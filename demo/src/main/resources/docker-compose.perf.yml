@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  hz1:
+    image: hazelcast/hazelcast:5.5.0
+    environment:
+      - HZ_CLUSTERNAME=demo-cluster
+      - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
+      - HZ_NETWORK_JOIN_TCPIP_MEMBERS=hz1:5701,hz2:5701,hz3:5701
+      - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
+    ports: ["5701:5701"]
+    networks: [hznet]
+  hz2:
+    image: hazelcast/hazelcast:5.5.0
+    environment:
+      - HZ_CLUSTERNAME=demo-cluster
+      - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
+      - HZ_NETWORK_JOIN_TCPIP_MEMBERS=hz1:5701,hz2:5701,hz3:5701
+      - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
+    ports: ["5702:5701"]
+    networks: [hznet]
+  hz3:
+    image: hazelcast/hazelcast:5.5.0
+    environment:
+      - HZ_CLUSTERNAME=demo-cluster
+      - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
+      - HZ_NETWORK_JOIN_TCPIP_MEMBERS=hz1:5701,hz2:5701,hz3:5701
+      - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
+    ports: ["5703:5701"]
+    networks: [hznet]
+  mcenter:
+    image: hazelcast/management-center:5.5.0
+    environment:
+      - MC_DEFAULT_CLUSTER=demo-cluster
+    ports: ["8081:8080"]
+    depends_on: [hz1, hz2, hz3]
+    networks: [hznet]
+networks:
+  hznet: {}

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/hazelcast-local/hazelcast-local.iml" filepath="$PROJECT_DIR$/hazelcast-local/hazelcast-local.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jmeter/jmeter.iml" filepath="$PROJECT_DIR$/jmeter/jmeter.iml" />
     </modules>
   </component>
 </project>

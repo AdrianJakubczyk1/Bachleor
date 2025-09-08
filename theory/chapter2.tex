@@ -1,97 +1,199 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Szablon pracy dyplomowej
-% Wydział Informatyki 
-% Zachodniopomorski Uniwersytet Technologiczny w Szczecinie
-% autor Joanna Kołodziejczyk (jkolodziejczyk@zut.edu.pl)
-% Bardzo wczesnym pierwowzorem szablonu był
-% The Legrand Orange Book
-% Version 5.0 (29/05/2025)
-%
-% Modifications to LOB assigned by %JK
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Analiza porównawcza systemów baz danych w pamięci}
+\section{Przetwarzanie w pamięci}
 
+Termin baza danych w pamięci obejmuje szerokie spektrum technologii, z których każda charakteryzuje się odmienną filozofią projektową, kompromisami architektonicznymi i idealnymi przypadkami użycia \cite{redis-docs,hazelcast-docs}. Decyzja o zastosowaniu rozwiązania w pamięci jest zaledwie pierwszym krokiem. Pomyślna implementacja zależy od wyboru systemu, którego charakterystyka jest precyzyjnie dopasowana do specyficznych wymagań funkcjonalnych i niefunkcjonalnych aplikacji. Dla platformy materiałów edukacyjnych, stanowiącej rdzeń niniejszej pracy, wymagania te obejmują przechowywanie złożonych, powiązanych ze sobą obiektów domenowych (takich jak \texttt{User}, \texttt{Lesson}, \texttt{Post} i \texttt{TaskSubmission}), potrzebę spójności i wysokiej dostępności danych oraz bezproblemową integrację ze stosem technologicznym opartym na języku Java i frameworku Spring Boot.
 
-%----------------------------------------------------------------------------------------
-%	CHAPTER 2
-%----------------------------------------------------------------------------------------
-\sloppy
+Aby ułatwić uporządkowaną analizę, warto skategoryzować dostępne systemy w pamięci według spektrum rosnącej złożoności i funkcjonalności \cite{redis-docs,hazelcast-docs}:
 
-\chapter{Opis implementacji systemu}
+\begin{enumerate}
+    \item \textbf{Rozproszone pamięci podręczne (Distributed Caches):} Systemy te, których przykładem jest Memcached, reprezentują najprostszą formę przechowywania danych w pamięci. Ich podstawową funkcją jest dostarczanie szybkiego, efemerycznego i rozproszonego magazynu klucz–wartość, zazwyczaj używanego do przyspieszania dostępu do danych przechowywanych w wolniejszej, trwałej bazie danych. Są one zoptymalizowane pod kątem prostoty i szybkości w podstawowych operacjach \texttt{get}/\texttt{set} \cite{memcached-docs}.
+    \item \textbf{Serwery struktur danych (Data Structure Servers):} Ta kategoria, której najsłynniejszym przedstawicielem jest Redis, wykracza poza proste buforowanie. Systemy te oferują bogaty zestaw serwerowych struktur danych (takich jak listy, zbiory, hashe i strumienie). Umożliwia to deweloperom przeniesienie bardziej złożonej logiki do samego magazynu danych, wykraczając poza proste buforowanie obiektów na rzecz bardziej zaawansowanych wzorców aplikacyjnych \cite{redis-docs}.
+    \item \textbf{Siatki danych w pamięci (In-Memory Data Grids):} Systemy takie jak Hazelcast należą do tej kategorii. Dostarczają rozproszoną strukturę w pamięci, która jest głęboko zintegrowana z językiem programowania i modelem obiektowym aplikacji. Zamiast jedynie przechowywać dane, są zaprojektowane do przechowywania i dystrybucji złożonych obiektów aplikacyjnych (np. obiektów Javy) oraz umożliwiają wykonywanie obliczeń bezpośrednio na węzłach, w których rezydują dane. Tworzy to ścisłe powiązanie między aplikacją a jej warstwą danych, często upraszczając rozwój w JVM\cite{hazelcast-docs}.
+    \item \textbf{Rozproszone bazy danych (Distributed Databases):} mają najwięcej funkcji z wszystkich powyżej przedstawionych typów baz danych w pamięci, przykładowym system tego typu jest Apache Ignite. Systemy te łączą szybkość przetwarzania w pamięci z możliwościami tradycyjnej bazy danych: silnym wsparciem dla SQL, transakcjami ACID oraz wielopoziomową persystencją, która pozwala zarządzać danymi w RAM i na dysku. \cite{ignite-docs}.
+\end{enumerate}
 
-W tym rozdziale zostaną szczegółowo przedstawione kwestie związane z implementacją aplikacji do udostępniania materiałów edukacyjnych. Omówiona zostanie architektura aplikacji, struktura baz danych, podział aplikacji na moduły oraz najważniejsze aspekty związane z realizacją konkretnych funkcjonalności.
+Wybór odpowiedniej technologii dla platformy edukacyjnej wymaga starannej oceny tych kategorii w odniesieniu do specyficznych potrzeb projektu. Prosta rozproszona pamięć podręczna może być niewystarczająca dla modelu obiektowego aplikacji, podczas gdy pełnoprawna rozproszona baza danych mogłaby wprowadzić niepotrzebną złożoność. W niniejszym rozdziale przeprowadzona zostanie analiza porównawcza w celu zidentyfikowania rozwiązania, które znajduje się w złotym środku pod względem funkcjonalności, wydajności i prostoty rozwoju dla tego konkretnego przypadku użycia.
 
-\section{Architektura aplikacji}
+\section{Analizowane systemy i kryteria porównawcze}
 
-Aplikacja została oparta o wzorzec architektoniczny MVC (\textit{Model-View-Controller}), który zapewnia czytelny podział aplikacji na warstwy:
-
+W celu zapewnienia kompleksowej i trafnej analizy, wybrano cztery czołowe systemy, z których każdy reprezentuje inny typ bazy danych w pamięci:
 \begin{itemize}
-    \item \textbf{Model} – reprezentujący logikę biznesową oraz struktury danych. Realizowany jest za pomocą klas encji oraz repozytoriów Spring Data JDBC.
-    \item \textbf{View} – odpowiedzialny za prezentację danych użytkownikom końcowym. Do jego realizacji wykorzystano szablony Thymeleaf oraz biblioteki Bootstrap.
-    \item \textbf{Controller} – obsługujący żądania użytkowników oraz zapewniający komunikację pomiędzy widokiem a modelem aplikacji.
+    \item \textbf{Memcached:} rozproszona pamięć podręczna, reprezentująca bazowy poziom prostoty i wydajności w przechowywuje dane w modelu klucz-wartość\cite{memcached-docs}.
+    \item \textbf{Redis:} archetypowy serwer struktur danych, znany z wysokiej wydajności, wszechstronności i bogatego zestawu funkcji \cite{redis-docs}.
+    \item \textbf{Apache Ignite:} potężna rozproszona baza danych, reprezentująca najwyższy poziom funkcjonalności dzięki silnemu wsparciu dla SQL i mechanizmom trwałości\cite{ignite-docs}.
+    \item \textbf{Hazelcast:} wiodąca siatka danych w pamięci z silnym ukierunkowaniem na wsparcie Javy, reprezentująca technologię wybraną w niniejszym projekcie \cite{hazelcast-docs}.
 \end{itemize}
 
-Takie podejście zapewnia przejrzystą strukturę projektu, ułatwiając jego dalszą rozbudowę oraz utrzymanie.
+Systemy te zostaną ocenione w oparciu o formalne ramy sześciu kryteriów analitycznych. Kryteria te wywodzą się bezpośrednio z wymagań niefunkcjonalnych, kluczowych dla sukcesu aplikacji użytej w pracy oraz celów niniejszej pracy:
 
-\section{Struktura baz danych}
+\begin{enumerate}
+    \item \textbf{Architektura i model klastrowania:} To kryterium bada, w jaki sposób poszczególne węzły tworzą klaster, obsługują dystrybucję danych i  czy/jak skalują się horyzontalnie. Analizuje, czy model jest typu peer-to-peer, master-slave, czy sterowany przez klienta, ponieważ ma to głębokie implikacje dla złożoności wdrożenia, odporności na awarie i skalowalności.
+    \item \textbf{Model danych i wspierane struktury:} Ocenia fundamentalny sposób przechowywania i reprezentacji danych. Bada zdolność systemu do obsługi prostych par klucz-wartość w porównaniu ze złożonymi, zagnieżdżonymi obiektami oraz dostępność serwerowych struktur danych, którymi można manipulować w sposób atomowy.
+    \item \textbf{Możliwości zapytań i obliczeń:} To kryterium bada mechanizmy pobierania i przetwarzania danych. Obejmuje zakres od prostych wyszukiwań opartych na kluczu po zaawansowane możliwości, takie jak indeksowanie wtórne, wyszukiwanie pełnotekstowe, wsparcie dla SQL oraz zdolność do wykonywania niestandardowych obliczeń bezpośrednio na węzłach danych.
+    \item \textbf{Trwałość danych:} Bada zdolność systemu do zapewnienia przetrwania danych po restarcie węzła lub katastrofalnej awarii klastra. Analizuje dostępne modele trwałości oraz poziom gwarancji, jakie zapewniają.
+    \item \textbf{dostępność oraz odporność na awarie:} Analizuje wbudowane mechanizmy obsługi awarii węzłów i zapewnienia ciągłości działania usługi. Obejmuje modele replikacji danych, automatycznego przełączania awaryjnego  i tolerancji na podział sieci.
+    \item \textbf{Integracja z ekosystemem Java i Spring Boot:} Ocenia praktyczne aspekty użycia systemu w ramach stosu technologicznego projektu. Bada jakość i dojrzałość biblioteki klienckiej dla Javy, łatwość konfiguracji oraz poziom integracji z frameworkiem Spring, w szczególności z modułami Spring Data i mechanizmami autokonfiguracji Spring Boot.
+\end{enumerate}
 
-W projekcie zastosowano dwa różne systemy bazodanowe:
+Poprzez systematyczną ocenę każdego z kandydatów w odniesieniu do tych sześciu kryteriów, możliwe będzie sformułowanie jasnego, opartego na dowodach uzasadnienia dla ostatecznego wyboru technologii.
 
-\subsection{PostgreSQL}
+\section{Szczegółowa analiza systemów}
 
-PostgreSQL jest główną bazą danych aplikacji, odpowiedzialną za trwałe przechowywanie danych produkcyjnych. Główne tabele obejmują:
+W tej sekcji przedstawiono szczegółową analizę każdego z czterech systemów kandydujących, oceniając je w ramach ustalonego schematu.
 
-\begin{itemize}
-    \item \texttt{users} – przechowuje dane użytkowników aplikacji, takie jak nazwa użytkownika, hasło, email, rola.
-    \item \texttt{posts} – zawiera publikowane materiały edukacyjne wraz z ich szczegółami jak tytuł, treść, autor oraz metadane (liczba wyświetleń, liczba komentarzy, liczba polubień).
-    \item \texttt{comments} – przechowuje komentarze użytkowników dotyczące materiałów.
-    \item \texttt{grades} – przechowuje oceny materiałów przyznawane przez nauczycieli oraz studentów.
-\end{itemize}
+\subsection{Memcached: fundamentalna rozproszona pamięć podręczna}
 
-\subsection{H2 (in-memory)}
-
-Baza danych H2 wykorzystywana jest do celów testowych, przechowywania sesji użytkowników oraz zbierania danych statystycznych dotyczących aplikacji. Główną tabelą wykorzystywaną przez tę bazę jest tabela \texttt{app\_statistics}, zawierająca takie pola jak:
-
-\begin{itemize}
-    \item \texttt{id} – unikalny identyfikator rekordu statystyki.
-    \item \texttt{stat\_name} – nazwa mierzonego wskaźnika.
-    \item \texttt{stat\_value} – wartość statystyki.
-    \item \texttt{timestamp} – znacznik czasu utworzenia rekordu.
-\end{itemize}
-
-Użycie osobnych baz danych pozwala na klarowny podział odpowiedzialności oraz łatwiejsze zarządzanie danymi w zależności od ich przeznaczenia.
-
-\section{Organizacja kodu źródłowego}
-
-Kod źródłowy aplikacji został zorganizowany zgodnie z zasadami modularności oraz dobrymi praktykami programistycznymi. Struktura projektu dzieli się na moduły:
+Memcached był jednym z pierwszych systemów, które spopularyzowały koncepcję rozproszonego buforowania w pamięci i służy jako ważny punkt odniesienia ze względu na swoją prostotę \cite{memcached-docs}.
 
 \begin{itemize}
-    \item \textbf{Moduł \texttt{persistent}} – odpowiedzialny za trwałe dane aplikacji (PostgreSQL).
-    \item \textbf{Moduł \texttt{temp}} – zawierający klasy odpowiedzialne za zarządzanie danymi tymczasowymi, sesjami i danymi statystycznymi (H2).
-    \item \textbf{Warstwa usług (\textit{Services})} – udostępniająca logikę biznesową oraz operacje na danych.
-    \item \textbf{Warstwa kontrolerów} – odpowiada za obsługę żądań HTTP oraz zarządzanie widokami.
-    \item \textbf{Warstwa widoków (Thymeleaf)} – odpowiedzialna za generowanie dynamicznych stron HTML.
+  \item \textbf{Architektura i model klastrowania:}
+        Serwer Memcached jest prosty i wielowątkowy, nie utrzymuje klastra ani replik.
+        Partycjonowanie danych realizuje klient po swojej stronie,
+        Co ułatwia zarządzanie serwerem, ale przenosi odpowiedzialność za obsługę awarii na warstwę kliencką \cite{memcached-docs}.
+
+  \item \textbf{Model danych i wspierane struktury:}
+        Magazyn klucz–wartość, klucz to ciąg znaków, a wartość to  blok bajtów. Domyślny maksymalny rozmiar elementu wynosi ok.\ 1\,MB.
+        Brak serwerowych struktur danych, złożone obiekty muszą być serializowane po stronie aplikacji \cite{memcached-docs}.
+
+  \item \textbf{Możliwości zapytań i obliczeń:}
+        Dostęp wyłącznie po kluczu, podstawowe operacje: \texttt{get}, \texttt{set}, \texttt{add}, \texttt{replace}, \texttt{delete}.
+        Brak indeksów wtórnych, kwerend zakresowych czy przetwarzania po stronie serwera. Aby odczytać dane
+        trzeba znać klucz \cite{memcached-docs}.
+
+  \item \textbf{Trwałość danych:}
+        Memcached nie zapewnia trwałości, to ulotna pamięć podręczna w RAM.
+        Restart procesu oznacza utratę zawartości. Przyjmuje się, że źródło danych
+        znajduje się w zewnętrznej, trwałej bazie \cite{memcached-docs}.
+
+  \item \textbf{dostępność i odporność na awarie:}
+        Brak natywnej replikacji danych i przełączania awaryjnego. W razie awarii węzła biblioteka kliencka
+        może pominąć niedostępny serwer i rozdzielić klucze między pozostałe, co jednak zwiększa
+        nacisk na system do ponownego wypełnienia cache \cite{memcached-docs}.
+
+  \item \textbf{Integracja z Java i Spring Boot:}
+        Integracja odbywa się poprzez biblioteki klienckie (np.\ \texttt{spymemcached}, \texttt{XMemcached})
+        oraz cache Spring (\emph{Spring Cache}), brak oficjalnego startera Spring Boot i modułu Spring Data.
+        Dla kontrastu, rozwiązania takie jak Redis czy Ignite mają dostępne integracje w Spring \cite{spring-docs}.
 \end{itemize}
 
-\section{Implementacja najważniejszych funkcjonalności}
+\noindent
+W kontekście platformy edukacyjnej Memcached jest zasadniczo niewystarczający:
+brak trwałości, brak struktur danych po stronie serwera i brak wbudowanej wysokiej dostępności
+kolidują z wymaganiami na główny magazyn złożonych obiektów domenowych.
+Może natomiast służyć jako punkt odniesienia pokazujący potrzebę bardziej funkcjonalnego rozwiązania \cite{memcached-docs}.
+\subsection{Redis: wysokowydajny serwer struktur danych}
 
-Do kluczowych funkcjonalności systemu, których implementacja została omówiona w tej pracy należą:
+Redis (Remote Dictionary Server) stał się de facto standardem branżowym dla przechowywania danych w pamięci, ewoluując daleko poza prostą pamięć podręczną w wszechstronny i potężny serwer struktur danych \cite{redis-docs}.
 
 \begin{itemize}
-    \item \textbf{System uwierzytelniania i autoryzacji} – oparty o Spring Security, umożliwiający zarządzanie dostępem do zasobów aplikacji zgodnie z rolą użytkowników.
-    \item \textbf{Publikacja i zarządzanie materiałami edukacyjnymi} – umożliwia użytkownikom tworzenie, edytowanie i usuwanie materiałów.
-    \item \textbf{Komentowanie i ocenianie materiałów} – pozwala na interakcję użytkowników oraz ocenianie publikowanych materiałów edukacyjnych.
-    \item \textbf{System statystyk i analiz} – regularnie aktualizowany przez zaplanowane zadania (\textit{Scheduler}), umożliwiający wizualizację danych takich jak najczęściej przeglądane lub komentowane materiały oraz najlepiej oceniani użytkownicy.
+  \item \textbf{Architektura i model klastrowania:}
+        Rdzeń przetwarzania w Redis opiera się na jednowątkowej pętli zdarzeń, co upraszcza współbieżność
+        i daje bardzo wysoką przepustowość dla operacji nieograniczonych CPU. Aby I/O nie blokowało głównego wątku,
+        nowsze wersje wykorzystują wielowątkowe wejście/wyjście do obsługi połączeń i wysyłania odpowiedzi.
+        Taki model zachowuje prostotę ścieżki wykonania poleceń przy wyższej przepustowości \cite{redis-docs}.
+
+  \item \textbf{Model danych i wspierane struktury:}
+        Choć bazowo jest to magazyn klucz–wartość, Redis udostępnia bogaty zestaw typów serwerowych
+        (m.in.\ \emph{Strings}, \emph{Lists}, \emph{Sets}, \emph{Sorted Sets}, \emph{Hashes}, \emph{Streams},
+        \emph{Bitmaps}, \emph{HyperLogLog}).
+        Pozwala to modelować złożone przypadki po stronie serwera, lecz wymaga świadomego mapowania
+        obiektowego modelu domeny na te struktury \cite{redis-docs}.
+
+  \item \textbf{Możliwości zapytań i obliczeń:}
+        Zapytania skupiają się wokół operacji typów danych,
+        odczyty wg wyniku w \emph{Sorted Sets} itp.). Redis nie obsługuje natywnie SQL, natomiast
+        dystrybucja \emph{Redis Stack} dostarcza moduły (np.\ indeksowanie wtórne, wyszukiwanie pełnotekstowe),
+        poszerzające możliwości wyszukiwania i analizy \cite{redis-docs}.
+
+  \item \textbf{Trwałość danych:}
+        Redis oferuje lokalny zrzut stanu(snapshot) \emph{RDB} oraz dziennik \emph{AOF} (Append-Only File) można je łączyć,
+        aby uzyskać kompromis pomiędzy wydajnością a poziomem trwałości. Konfiguracja tych mechanizmów
+        pozwala dopasować koszty zapisu i czas odtwarzania danych po awarii \cite{redis-docs}.
+
+  \item \textbf{dostępność i odporność na awarie:}
+        \emph{Redis Sentinel} zapewnia monitorowanie i automatyczne przełączanie awaryjne w układzie
+        replikacji, a \emph{Redis Cluster} realizuje poziome skalowanie poprzez partycjonowanie danych, wbudowane failover bez udziału Sentinela. Wybór zależy od potrzeby:
+        wysoka dostępność z użyciem Sentinela vs.\ partycjonowanie i skalowanie horyzontalne (klaster) \cite{redis-docs}.
+
+  \item \textbf{Integracja z Java i Spring Boot:}
+        Projekt \emph{Spring Data Redis} dostarcza wysokopoziomowe API (np.\ \texttt{RedisTemplate},
+        repozytoria) oraz integruje się z cache Spring i autokonfiguracją Spring Boot,
+        co istotnie upraszcza użycie w aplikacjach JVM \cite{spring-docs}.
 \end{itemize}
 
-Każda z tych funkcjonalności została dokładniej omówiona wraz z przykładami kodu źródłowego ilustrującymi kluczowe elementy implementacji.
+\noindent
+Redis jest silnym kandydatem, łączy bardzo wysoką wydajność z szerokim wachlarzem typów danych.
+W tym projekcie pojawiają się jednak dwa kompromisy: (1) „niedopasowanie impedancji” między
+grafem obiektów Javy a modelem struktur Redisa (co zwiększa złożoność warstwy dostępu do danych)
+oraz (2) Koszt operacyjny utrzymania Sentinela/klastra dla zapewnienia ciągłości działania vs. rozwiązania bliżej aplikacji.\cite{redis-docs,spring-docs}.
 
-\section{Testowanie aplikacji}
+\subsection{Apache Ignite: rozproszona baza danych}
 
-Testowanie aplikacji zostało oparte o framework JUnit z wykorzystaniem H2 jako bazy danych w pamięci operacyjnej. W projekcie wyróżniono następujące rodzaje testów:
+Spośród omawianych rozwiązań Apache Ignite ma najszerszy zakres funkcji, łączy cechy rozproszonej bazy danych (SQL, transakcje, trwałość) z przetwarzaniem w pamięci, co pozwala osiągać wysoką wydajność \cite{ignite-docs}.
 
 \begin{itemize}
-    \item \textbf{Testy jednostkowe} – weryfikują poprawność działania poszczególnych metod oraz logiki biznesowej.
-    \item \textbf{Testy integracyjne} – obejmują całe ścieżki żądań HTTP i weryfikują poprawną współpracę poszczególnych modułów.
+    \item \textbf{Architektura i model klastrowania:} Ignite używa modelu klastrowania peer-to-peer, w którym wszystkie węzły są równe. Definiującą cechą architektoniczną jest \textbf{wielopoziomowe przechowywanie danych}. Ignite traktuje RAM jako wysokowydajną warstwę buforowania i przetwarzania, ale może być skonfigurowany do używania pamięci na dysku. Pozwala to na wzrost całkowitego zbioru danych znacznie ponad dostępną pamięć RAM, przy czym Ignite transparentnie zarządza, które dane są w RAM, a które na dysku. To czyni go przede wszystkim trwałą bazą danych z możliwościami przetwarzania w pamięci, a nie tylko pamięcią podręczną w RAM z opcjonalną trwałością \cite{ignite-docs}.
+    \item \textbf{Model danych i wspierane struktury:} W swoim rdzeniu Apache Ignite jest rozproszonym magazynem danych klucz-wartość. Jednakże, udostępnia te dane poprzez model relacyjny. Jest zaprojektowany do przechowywania złożonych obiektów Javy i automatycznie mapuje je na schemat relacyjny, który można odpytywać za pomocą SQL. Obsługuje również szereg rozproszonych struktur danych podobnych do tych, które można znaleźć w bibliotekach współbieżności Javy, takich jak kolejki i zbiory \cite{ignite_data_model}.
+    \item \textbf{Możliwości zapytań i obliczeń:} Ta kategoria jest prawdopodobnie największa siłą Ignite. Zapewnia wsparcie SQL, obsługuje DDL, DML i transakcje ACID. Może wykonywać rozproszone złączenia na danych partycjonowanych na różnych węzłach\cite{ignite-docs}. Oprócz SQL, oferuje API klucz-wartość oraz rozproszone API, które pozwala na wysyłanie obliczeń do wykonania na węzłach, gdzie rezydują dane, minimalizując ich przesyłanie.
+    \item \textbf{Trwałość danych:} trwałość jest integralną cechą Ignite. Używa dziennika z wyprzedzeniem zapisu oraz mechanizm punktów kontrolnych, aby zapewnić silną trwałości i spójności danych, podobnie jak w tradycyjnych relacyjnych bazach danych. Zapewnia też, że dane nie zostaną utracone nawet w przypadku całkowitej awarii klastra \cite{ignite-docs}.
+    \item \textbf{dostępność i odporność na awarie:} Dostępność jest osiągana poprzez partycjonowanie i replikację danych. Podczas konfiguracji pamięci podręcznej można określić liczbę kopii zapasowych dla każdej partycji danych. Te kopie zapasowe są dystrybuowane na inne węzły w klastrze. W przypadku awarii węzła, Ignite może kontynuować działanie, używając kopii zapasowych, i automatycznie zrównoważy dane, gdy nowy węzeł dołączy do klastra \cite{ignite-docs}.
+    \item \textbf{Integracja z Java i Spring Boot:} Ignite ma silne powiązania z  Javą. Dostarcza dedykowane moduły do integracji ze Spring Data (\texttt{ignite-spring-data}) oraz autokonfiguracji Spring Boot (\texttt{ignite-spring-boot-autoconfigure-ext}), które upraszczają proces podłączania klienta w aplikacji Spring \cite{spring-boot, spring-docs, ignite-docs}.
 \end{itemize}
 
-Użycie bazy danych H2 do testów umożliwiło szybkie uruchamianie oraz wysoką izolację testów, co przyspieszyło proces weryfikacji jakości kodu aplikacji.
+Z perspektywy zakresu funkcji Apache Ignite należy do najbardziej rozbudowanych rozwiązań, scala przetwarzanie w pamięci operacyjnej z pełnym zestawem mechanizmów bazodanowych SQL. W praktyce wiąże się to ze wzrostem złożoności, od konfiguracji warstwowej persystencji, przez niuanse semantyki transakcyjnej, po utrzymanie topologii klastra. Dla tego projektu taki wybór może okazać się nadmierny (\emph{over-engineering}) \cite{ignite-docs}.
+
+\subsection{Hazelcast: Baza danych w pamięci z silnym ukierunkowaniem na wsparcie Javy}
+
+Hazelcast zapewnia rozproszony magazyn danych w pamięci z natywnym API dla Javy i gotowymi integracjami (Spring Cache/Session), co upraszcza budowę aplikacji \cite{hazelcast-docs}.
+
+\begin{itemize}
+    \item \textbf{Architektura i model klastrowania:} Hazelcast charakteryzuje się elastyczną architekturą klastrowania peer-to-peer. Węzły samoczynnie nawiązują łączność i dołączają do klastra za pomocą różnych mechanizmów (np. multicast, TCP/IP). Nie ma podziału na master-slave, wszystkie węzły w klastrze są równorzędne. Ułatwia to instalację i poprawia niezawodność. Główną zaletą struktury jest opcja integracji bezpośrednio w aplikacji, gdzie komponent Hazelcast działa jako moduł w ramach tego samego środowiska JVM. Takie podejście zostało wykorzystane w tej pracy, z Hazelcast zintegrowanym w aplikacji Spring Boot, co tworzy niezależną i elastyczną strukturę aplikacji. \cite{hazelcast-docs}.
+    \item \textbf{Model danych i wspierane struktury:} Model danych Hazelcast jest fundamentalnie zorientowany obiektowo. Jest zaprojektowany do przechowywania i dystrybucji standardowych obiektów Javy bez potrzeby stosowania złożonej warstwy mapowania. Jego podstawowe struktury danych są zaprojektowane tak, aby naśladować znane kolekcje z pakietu \texttt{java.util.concurrent}, takie jak \texttt{IMap} (jak \texttt{ConcurrentMap}), \texttt{IQueue} i \texttt{ISet}. Zapewnia to bardzo intuicyjny i naturalny model programowania w Javie, znacznie ułatwiając opanowanie narzędzia i minimalizując komplikacje w procesie tworzenia oprogramowania \cite{hazelcast-docs}. Obiekty domenowe aplikacji (\texttt{User}, \texttt{Lesson} itp.) mogą być przechowywane bezpośrednio w \texttt{IMap}, zachowując swoją strukturę i relacje.
+    \item \textbf{Możliwości zapytań i obliczeń:} Hazelcast zapewnia solidne możliwości zapytań. Dane przechowywane w \texttt{IMap} można odpytywać na polach obiektów za pomocą API \texttt{Predicates}, które jest składniowo podobne do klauzul \texttt{WHERE} w SQL. Obsługuje również rozproszony silnik SQL dla bardziej złożonych zapytań, w tym złączeń między mapami \cite{hazelcast-docs}. Wyróżniającą się cechą jest wsparcie dla obliczeń rozproszonych za pomocą mechanizmów takich jak EntryProcessors, to fragment kodu wykonywany bezpośrednio na węźle–właścicielu danych, w ramach pojedynczej operacji na danym kluczu, w którym znajduje się określony wpis mapy. Pozwala to na wykonywanie złożonych operacji odczytu-modyfikacji-zapisu bez przesyłania danych przez sieć, co jest bardzo wydajne \cite{hazelcast-docs}.
+    \item \textbf{Trwałość danych:} Chociaż Hazelcast jest platformą która zapewnia mechanizmy trwałości. Zazwyczaj jest to osiągane poprzez interfejsy \texttt{MapStore} i \texttt{MapLoader}, które pozwalają na wzorce buforowania read-through i write-through/write-behind do trwałej bazy danych. Hazelcast oferuje również własną natywną funkcję, która może zapisywać dane na dysku w celu szybszego odzyskiwania po pełnym restarcie klastra.Trwałość  danych jest tu postrzegana głównie jako wsparcie do odzyskania danych, nie jako podstawowy nośnik, natomiast w Apache Ignite rola ta jest pierwszoplanowa.\cite{hazelcast-docs}.
+    \item \textbf{dostępność i odporność na awarie:} Wysoka dostępność jest podstawową cechą, osiąganą poprzez kopie zapasowe. Gdy dane są partycjonowane i dystrybuowane w klastrze, Hazelcast można skonfigurować do tworzenia jednej lub więcej synchronicznych lub asynchronicznych kopii zapasowych każdej partycji na innych członkach klastra. Jeśli węzeł ulegnie awarii, dane nie zostaną utracone, a klaster może kontynuować działanie bezproblemowo. Gdy uszkodzony węzeł zostanie zastąpiony, Hazelcast automatycznie zrównoważy dane i kopie zapasowe w klastrze, aby przywrócić pożądany poziom redundancji \cite{hazelcast-docs}.
+    \item \textbf{Integracja z Java i Spring Boot:} Jako produkt natywny dla Javy, integracja Hazelcast ze Springiem jest łatwa i bezproblemowa. Zapewnia pierwszorzędne wsparcie dla autokonfiguracji Spring Boot, deklaratywnego buforowania za pomocą adnotacji Springa \texttt{@Cacheable} oraz zarządzania sesjami rozproszonymi dla aplikacji internetowych (\texttt{Spring Session}). Ta głęboka integracja upraszcza konfigurację do zaledwie kilku linii w pliku \texttt{application.yml} i pozwala deweloperom wykorzystać moc Hazelcast z minimalną ilością kodu szablonowego, co zostało zademonstrowane we własnej implementacji projektu.
+\end{itemize}
+
+Hazelcast zajmuje wyjątkową i korzystną pozycję dla tego projektu. Jest znacznie potężniejszy i bogatszy w funkcje niż Memcached. Unika niedopasowania modelu obiektowego, które wystąpiłoby w przypadku Redis, oferując bardziej naturalny model programowania dla aplikacji w Javie. Co kluczowe, zapewnia niezbędne funkcje przechowywania danych rozproszonych, zapytań i wysokiej dostępności bez znacznej złożoności operacyjnej i koncepcyjnej pełnoprawnej rozproszonej bazy danych, takiej jak Apache Ignite. Jego zdolność do bycia osadzonym bezpośrednio w aplikacji Spring Boot tworzy prostą, elegancką i skalowalną architekturę.
+
+\section{Uzasadnienie wyboru technologii}
+
+Szczegółowa analiza czterech systemów kandydujących ukazuje wyraźny krajobraz kompromisów. Każdy system jest zoptymalizowany pod kątem innego zestawu przypadków użycia, a optymalny wybór to ten, którego mocne strony najściślej odpowiadają specyficznym wymaganiom projektu. poniższa tabela podsumowuje wcześniejszą analize. 
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{2.6cm}p{2.6cm}p{2.6cm}p{2.6cm}p{2.6cm}p{2.6cm}}
+\hline
+\textbf{System} & \textbf{Architektura i model klastrowania} & \textbf{Model danych i struktury} & \textbf{Zapytania i obliczenia} & \textbf{Trwałość danych} & \textbf{Dostępność / odporność} \\
+\hline
+Memcached & Prosty, wielowątkowy serwer; \emph{brak} klastra i replikacji danych; partycjonowanie po stronie klienta. & Klucz--wartość, domyślnie do ok.\ 1\,MB; brak struktur serwerowych. & Tylko operacje po kluczu: get/set/add/replace/delete; brak indeksów, SQL i przetwarzania po stronie serwera. & Brak trwałości (pamięć ulotna); restart $\Rightarrow$ utrata danych. & Brak natywnej replikacji danych; biblioteka kliencka omija niedostępne węzły, konieczność ponownego wypełnienia cache. \\
+\hline
+Redis & Rdzeń jednowątkowy + wielowątkowe I/O; klaster Redis i Sentinel. & Klucz--wartość z wieloma typami: String, List, Set, Sorted~Sets, Streams, itp. & Operacje specyficzne dla typów, wyszukiwanie przez moduły (np.\ Redis Stack). & Okresowe pełne zapisy stanu bazy w formacie RDB na dysk oraz dziennik AOF (Append Only File); możliwa kombinacja obu. & Replikacja danych, automatyczne przełączanie awaryjne (Sentinel/Cluster). \\
+\hline
+Apache Ignite & Klaster \emph{peer-to-peer}; partycjonowanie z kopiami; przetwarzanie współlokalne z danymi. & Magazyn Klucz--wartość i tabele SQL; rozproszone kolekcje danych; mapowanie obiektów Javy. & SQL, transakcje ACID, przetwarzanie współlokalne. & natywna trwałość danych , odtwarzanie po restarcie. & Kopie partycji (backupy), automatyczne równoważenie/rekonfiguracja klastra. \\
+\hline
+Hazelcast & Klaster \emph{peer-to-peer}; tryb embedded lub client--server; partycjonowanie z kopiami. & In-memory data grid: \texttt{IMap}, \texttt{ICache}, \texttt{IQueue}, \texttt{ISet}; przechowywanie obiektów Javy. & Predykaty i SQL; EntryProcessor i agregacje; potoki przetwarzania (Jet). & \texttt{MapStore} (read-through/write-behind) do trwałych magazynów danych; utrwalenie stanu i szybkie odtwarzanie po restarcie (w edycji enterprise). & Kopie synch./asynch.; automatyczna migracja partycji i przywracanie redundancji. \\
+\hline
+\end{tabular}
+\caption{Podsumowanie porównania systemów in-memory z rozdziału~2 według: architektury, modelu danych, zapytań/obliczeń, trwałości oraz dostępności.}
+\label{tab:inmem-summary-r2}
+\end{table}
+\FloatBarrier
+Na podstawie tej analizy porównawczej, poprzez proces eliminacji, wyłania się jasne uzasadnienie wyboru Hazelcast dla aplikacji do udostępniania materiałów edukacyjnych.
+
+\begin{enumerate}
+    \item \textbf{Ocena Memcached:} Memcached zostaje odrzucony. Brak trwałości danych, brak serwerowych struktur danych i brak wbudowanych rozwiązań zwiększających dostępność i odporność na awarie, czyni go fundamentalnie niezdolnym do pełnienia roli głównego magazynu danych dla aplikacji o złożonej logice domenowej i wymaganiach dotyczących integralności danych.
+    \item \textbf{Ocena Redis:} Redis jest potężnym i wszechstronnym narzędziem. Jego wysoka wydajność i bogaty zestaw funkcji są atrakcyjne. Jednak jego przyjęcie w tym projekcie wprowadziłoby dwa znaczące wyzwania. Po pierwsze, obiektowy model domenowy aplikacji musiałby być ręcznie mapowany na struktury danych Redis, co dodałoby warstwę złożoności i koszt utrzymania kodu warstwy danych. Po drugie, osiągnięcie solidnej wysokiej dostępności wymagałoby wdrożenia i zarządzania oddzielną infrastrukturą Redis Sentinel lub Cluster, co zwiększa złożoność operacyjną rozwiązania.
+    \item \textbf{Ocena Apache Ignite:} Ignite ma najwięcej funkcjonalności, skutecznie zapewniając rozproszoną bazę danych SQL z szybkością przetwarzania w pamięci. Chociaż jego możliwości są imponujące, przekraczają one wymagania projektu. Głównym celem jest zbudowanie i zademonstrowanie aplikacji internetowej, która wykorzystuje baze danych \textit{w pamięci} dla wydajności, a nie zarządzanie złożonością pełnoskalowego systemu rozproszonej bazy danych. koszt operacyjny związany z konfiguracją wielopoziomowego przechowywania danych w Ignite, optymalizacją mechanizmu zapisu trwałego i pracą z zaawansowanymi modelami transakcyjnymi odwróciłby uwagę od głównego celu samej aplikacji.
+    \item \textbf{Argument za Hazelcast:} Hazelcast jest optymalnym wyborem, ponieważ stanowi idealną równowagę między wydajnością a prostotą dla tego konkretnego przypadku użycia.
+    \begin{itemize}
+        \item \textbf{Synergia architektoniczna:} Jego zdolność do bycia osadzonym bezpośrednio w aplikacji Spring Boot tworzy prostą, samowystarczalną i horyzontalnie skalowalną architekturę. Eliminuje to potrzebę zarządzania zewnętrzną bazą danych, co jest znaczącą zaletą.
+        \item \textbf{Doświadczenie deweloperskie:} Natywny dla Javy, zorientowany obiektowo model programowania jest najważniejszym wyróżnikiem. Pozwala na bezpośrednie przechowywanie obiektów domenowych aplikacji w znanych, podobnych do kolekcji strukturach (\texttt{IMap}), co radykalnie upraszcza warstwę dostępu do danych i idealnie pasuje do stosu technologicznego projektu.
+        \item \textbf{Wystarczające i adekwatne funkcje:} Hazelcast zapewnia wszystkie niezbędne możliwości, solidne zapytania za pomocą predykatów i SQL, obliczenia rozproszone i prostą wysoką dostępność poprzez kopie zapasowe partycji, łatwy do opanowania, bez długiego wdrożenia i obciążenia operacyjnego bardziej złożonych systemów, takich jak Ignite.
+    \end{itemize}
+\end{enumerate}
+
+Podsumowując, wybór Hazelcast nie jest jedynie kwestią preferencji, ale przemyślaną decyzją architektoniczną. Zapewnia on korzyści wydajnościowe wynikające z przetwarzania w pamięci, oferując jednocześnie najprostszy i najbardziej naturalny model rozwoju dla aplikacji napisanej w Javie, co czyni go najskuteczniejszym i najbardziej efektywnym rozwiązaniem dla specyficznych celów i ograniczeń tego projektu. Ten analityczny fragment uzasadnia dokonane wybory architektoniczne i stanowi mocne uzasadnienie dla implementacji i testów.

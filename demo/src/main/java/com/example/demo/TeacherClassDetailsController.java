@@ -81,11 +81,11 @@ public class TeacherClassDetailsController {
 
     @PostMapping("/teacher/classes/{classId}/students/{signupId}/approve")
     public String approveSignup(@PathVariable Long classId, @PathVariable Long signupId) {
-        // findById now returns Optional<ClassSignUp>
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
-            // delete by ID, not by entity
-            classSignUpRepository.delete(signupId);
+            ClassSignUp su = opt.get();
+            su.setStatus("APPROVED");
+            classSignUpRepository.save(su);
         }
         return "redirect:/teacher/classes/" + classId + "/students";
     }
@@ -94,7 +94,10 @@ public class TeacherClassDetailsController {
     public String rejectSignup(@PathVariable Long classId, @PathVariable Long signupId) {
         Optional<ClassSignUp> opt = classSignUpRepository.findById(signupId);
         if (opt.isPresent()) {
+            ClassSignUp su = opt.get();
+            //su.setStatus("REJECTED");
             classSignUpRepository.delete(signupId);
+            classSignUpRepository.save(su);
         }
         return "redirect:/teacher/classes/" + classId + "/students";
     }

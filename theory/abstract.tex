@@ -14,19 +14,16 @@
 
 \begin{center}
 \noindent {{\color{blueZUT}\Large\sffamily  {Streszczenie}}}\\[1cm] 
+
+
+
+Celem pracy było przeprowadzenie analizy porównawczej wiodących systemów baz danych w pamięci oraz, na jej podstawie, opracowanie aplikacji w języku Java udostępniającej materiały dydaktyczne.
+W wyniku analizy systemów Memcached, Redis, Apache Ignite i Hazelcast, do implementacji wybrano ten ostatni, w którym wszystkie dane (lekcje, zadania, użytkownicy) przechowywane są w klastrowych mapach pamięciowych, co zapewnia niskie opóźnienia i łatwą skalowalność.
+W części teoretycznej przedstawiono kryteria oceny i przeprowadzono szczegółowe porównanie architektur, modeli danych i wydajności analizowanych systemów.
+Część praktyczna obejmuje projekt i implementację aplikacji w oparciu o Spring Boot 3.4.1, realizację operacji CRUD na strukturach `IMap`, a także budowę paneli administratora i nauczyciela oraz mechanizmów interakcji użytkowników.
+Przeprowadzone testy wydajnościowe i integracyjne potwierdziły słuszność wyboru architektonicznego, wykazując wysoką wydajność i poprawność działania rozwiązania.
+Zaproponowana aplikacja stanowi skalowalną podstawę do dalszego rozwoju.
+
+
 \end{center}
-Celem pracy było zaprojektowanie oraz zaimplementowanie aplikacji webowej umożliwiającej efektywne współdzielenie materiałów edukacyjnych. Przedstawiona aplikacja została zrealizowana z wykorzystaniem technologii Spring oraz bazy danych działającej w pamięci operacyjnej (in-memory) – H2 oraz relacyjna baza danych PostgreSQL. W części teoretycznej omówiono wykorzystane technologie, w tym framework Spring, bazę danych H2, baze danych PostgreSQL oraz wzorce projektowe wykorzystywane podczas budowy aplikacji internetowych.
 
-W ramach części praktycznej zaprojektowano strukturę danych, interfejs użytkownika oraz zaimplementowano funkcjonalności takie jak publikacja materiałów, możliwość oceniania oraz komentowania treści przez użytkowników, zarządzanie profilami ,panel administracyjny, panel nauczyciela oraz możliwość polubienia i ocenienia materiałów. Do przechowywania tymczasowych danych statystycznych wykorzystano technologię schedulera, który okresowo aktualizuje statystyki aplikacji. Dodatkowo aplikacja zawiera mechanizmy bezpieczeństwa oraz uwierzytelniania użytkowników z wykorzystaniem Spring Security.
-
-W wyniku przeprowadzonych testów aplikacja spełniła założone cele projektowe, zapewniając intuicyjny dostęp do materiałów edukacyjnych oraz łatwe zarządzanie treścią dla administratorów. Przedstawione rozwiązanie może stanowić podstawę do dalszego rozwoju lub integracji z innymi systemami edukacyjnymi.
-
-\vfill
-
-\begin{center}
-\noindent {{\color{blueZUT}\Large\sffamily {Abstract}}}\\[1cm] 
-\end{center}
-The abstract's purpose, which should not exceed 150 words, is to provide sufficient information to allow potential readers to decide on the thesis's relevance—a maximum of half the page.
-
-\vspace{10pt}
-\noindent{\bf keywords:} e.g.: computer science, control, computer graphics

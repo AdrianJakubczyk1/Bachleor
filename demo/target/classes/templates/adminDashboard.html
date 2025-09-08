@@ -13,11 +13,11 @@
 
 <div class="dashboard-container">
 
-    <div class="left-sidebar">
-        <div class="list-group list-group-flush">
-            <a href="/admin/classes" class="list-group-item list-group-item-action">Manage Classes</a>
-            <a href="/admin/users" class="list-group-item list-group-item-action">Manage Users</a>
-            <a href="/admin/posts" class="list-group-item list-group-item-action">Manage Posts</a>
+    <div class="left-sidebar bg-dark">
+        <div class="list-group">
+            <a href="/admin/classes" class="list-group-item list-group-item-action bg-dark text-light border-secondary">Manage Classes</a>
+            <a href="/admin/users"   class="list-group-item list-group-item-action bg-dark text-light border-secondary">Manage Users</a>
+            <a href="/admin/posts"   class="list-group-item list-group-item-action bg-dark text-light border-secondary">Manage Posts</a>
         </div>
     </div>
 
@@ -101,5 +101,6 @@ var labels = /*[[${statsLabels}]]*/ [];
   });
 </script>
 <script th:src="@{/js/darkMode.js}"></script>
+
 </body>
 </html>
